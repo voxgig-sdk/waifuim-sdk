@@ -28,7 +28,7 @@ class GithubApi2SDK
     utility = GithubApi2Utility.new
     @_utility = utility
 
-    config = GithubApi2Config.make_config
+    config = GithubApi2Config.shared_config
 
     @_rootctx = utility.make_context.call({
       "client" => self,

@@ -40,7 +40,7 @@ class GithubApi2SDK
         $utility = new GithubApi2Utility();
         $this->_utility = $utility;
 
-        $config = GithubApi2Config::make_config();
+        $config = GithubApi2Config::shared_config();
 
         $this->_rootctx = ($utility->make_context)([
             "client" => $this,

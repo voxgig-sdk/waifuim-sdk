@@ -15,7 +15,7 @@ require_relative "../GithubApi2_sdk"
 module GithubApi2FeatureHarness
   # True when this SDK was generated with the named feature.
   def self.has_feature?(name)
-    f = GithubApi2Config.make_config["feature"]
+    f = GithubApi2Config.shared_config["feature"]
     f.is_a?(Hash) && !f[name].nil?
   end
 
