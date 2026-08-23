@@ -36,18 +36,21 @@
               "active": true,
               "name": "id",
               "req": false,
+              "short": "Unique identifier for the artist",
               "type": "`$STRING`"
             },
             {
               "active": true,
               "name": "name",
               "req": false,
+              "short": "Name of the artist",
               "type": "`$STRING`"
             },
             {
               "active": true,
               "name": "url",
               "req": false,
+              "short": "URL to the artist's profile or portfolio",
               "type": "`$STRING`"
             }
           ],
@@ -125,36 +128,42 @@
               "active": true,
               "name": "category",
               "req": false,
+              "short": "Category of the image",
               "type": "`$STRING`"
             },
             {
               "active": true,
               "name": "height",
               "req": false,
+              "short": "Image height in pixels",
               "type": "`$INTEGER`"
             },
             {
               "active": true,
               "name": "id",
               "req": false,
+              "short": "Unique identifier for the image",
               "type": "`$STRING`"
             },
             {
               "active": true,
               "name": "thumbnail",
               "req": false,
+              "short": "URL to the thumbnail version of the image",
               "type": "`$STRING`"
             },
             {
               "active": true,
               "name": "url",
               "req": false,
+              "short": "URL to the image",
               "type": "`$STRING`"
             },
             {
               "active": true,
               "name": "width",
               "req": false,
+              "short": "Image width in pixels",
               "type": "`$INTEGER`"
             }
           ],

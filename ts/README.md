@@ -9,7 +9,7 @@ The API is exposed as capitalised, semantic **Entities** — e.g.
 instead of raw URL paths and query parameters. This keeps the surface
 predictable and low-friction for both humans and AI agents.
 
-> Other languages, the CLI, and MCP server live alongside this one — see
+> Also generated from this model: `go`, `go-cli`, `go-mcp`, `lua`, `php`, `py`, `rb` — see
 > the [top-level README](../README.md).
 
 
@@ -288,9 +288,9 @@ The `prepare()` method returns:
 
 | Field | Description |
 | --- | --- |
-| `id` |  |
-| `name` |  |
-| `url` |  |
+| `id` | Unique identifier for the artist |
+| `name` | Name of the artist |
+| `url` | URL to the artist's profile or portfolio |
 
 Operations: list.
 
@@ -301,12 +301,12 @@ API path: `/artists`
 | Field | Description |
 | --- | --- |
 | `artist` |  |
-| `category` |  |
-| `height` |  |
-| `id` |  |
-| `thumbnail` |  |
-| `url` |  |
-| `width` |  |
+| `category` | Category of the image |
+| `height` | Image height in pixels |
+| `id` | Unique identifier for the image |
+| `thumbnail` | URL to the thumbnail version of the image |
+| `url` | URL to the image |
+| `width` | Image width in pixels |
 
 Operations: list.
 
@@ -331,9 +331,9 @@ Create an instance: `const artist = client.Artist()`
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `id` | `string` |  |
-| `name` | `string` |  |
-| `url` | `string` |  |
+| `id` | `string` | Unique identifier for the artist |
+| `name` | `string` | Name of the artist |
+| `url` | `string` | URL to the artist's profile or portfolio |
 
 #### Example: List
 
@@ -357,12 +357,12 @@ Create an instance: `const image = client.Image()`
 | Field | Type | Description |
 | --- | --- | --- |
 | `artist` | `Record<string, any>` |  |
-| `category` | `string` |  |
-| `height` | `number` |  |
-| `id` | `string` |  |
-| `thumbnail` | `string` |  |
-| `url` | `string` |  |
-| `width` | `number` |  |
+| `category` | `string` | Category of the image |
+| `height` | `number` | Image height in pixels |
+| `id` | `string` | Unique identifier for the image |
+| `thumbnail` | `string` | URL to the thumbnail version of the image |
+| `url` | `string` | URL to the image |
+| `width` | `number` | Image width in pixels |
 
 #### Example: List
 

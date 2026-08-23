@@ -128,9 +128,9 @@ const artist = client.Artist()
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `id` | `string` | No |  |
-| `name` | `string` | No |  |
-| `url` | `string` | No |  |
+| `id` | `string` | No | Unique identifier for the artist |
+| `name` | `string` | No | Name of the artist |
+| `url` | `string` | No | URL to the artist's profile or portfolio |
 
 ### Operations
 
@@ -181,12 +181,12 @@ const image = client.Image()
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `artist` | `Record<string, any>` | No |  |
-| `category` | `string` | No |  |
-| `height` | `number` | No |  |
-| `id` | `string` | No |  |
-| `thumbnail` | `string` | No |  |
-| `url` | `string` | No |  |
-| `width` | `number` | No |  |
+| `category` | `string` | No | Category of the image |
+| `height` | `number` | No | Image height in pixels |
+| `id` | `string` | No | Unique identifier for the image |
+| `thumbnail` | `string` | No | URL to the thumbnail version of the image |
+| `url` | `string` | No | URL to the image |
+| `width` | `number` | No | Image width in pixels |
 
 ### Operations
 

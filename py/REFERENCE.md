@@ -91,9 +91,9 @@ artist = client.Artist()
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `id` | `str` | No |  |
-| `name` | `str` | No |  |
-| `url` | `str` | No |  |
+| `id` | `str` | No | Unique identifier for the artist |
+| `name` | `str` | No | Name of the artist |
+| `url` | `str` | No | URL to the artist's profile or portfolio |
 
 ### Operations
 
@@ -147,12 +147,12 @@ image = client.Image()
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `artist` | `dict` | No |  |
-| `category` | `str` | No |  |
-| `height` | `int` | No |  |
-| `id` | `str` | No |  |
-| `thumbnail` | `str` | No |  |
-| `url` | `str` | No |  |
-| `width` | `int` | No |  |
+| `category` | `str` | No | Category of the image |
+| `height` | `int` | No | Image height in pixels |
+| `id` | `str` | No | Unique identifier for the image |
+| `thumbnail` | `str` | No | URL to the thumbnail version of the image |
+| `url` | `str` | No | URL to the image |
+| `width` | `int` | No | Image width in pixels |
 
 ### Operations
 

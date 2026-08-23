@@ -13,31 +13,37 @@ main: kit: entity: image: {
     {
       name: "category"
       req: false
+      short: "Category of the image"
       type: "`$STRING`"
     }
     {
       name: "height"
       req: false
+      short: "Image height in pixels"
       type: "`$INTEGER`"
     }
     {
       name: "id"
       req: false
+      short: "Unique identifier for the image"
       type: "`$STRING`"
     }
     {
       name: "thumbnail"
       req: false
+      short: "URL to the thumbnail version of the image"
       type: "`$STRING`"
     }
     {
       name: "url"
       req: false
+      short: "URL to the image"
       type: "`$STRING`"
     }
     {
       name: "width"
       req: false
+      short: "Image width in pixels"
       type: "`$INTEGER`"
     }
   ]

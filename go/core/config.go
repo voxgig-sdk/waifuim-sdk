@@ -11,6 +11,9 @@ func MakeConfig() map[string]any {
 	return map[string]any{
 		"main": map[string]any{
 			"name": "GithubApi2",
+			"slug": "github-api2",
+			"version": "0.0.1",
+			"target": "go",
 		},
 		"feature": map[string]any{
 			"test": map[string]any{
@@ -34,14 +37,17 @@ func MakeConfig() map[string]any {
 				"fields": []any{
 					map[string]any{
 						"name": "id",
+						"short": "Unique identifier for the artist",
 						"type": "`$STRING`",
 					},
 					map[string]any{
 						"name": "name",
+						"short": "Name of the artist",
 						"type": "`$STRING`",
 					},
 					map[string]any{
 						"name": "url",
+						"short": "URL to the artist's profile or portfolio",
 						"type": "`$STRING`",
 					},
 				},
@@ -102,26 +108,32 @@ func MakeConfig() map[string]any {
 					},
 					map[string]any{
 						"name": "category",
+						"short": "Category of the image",
 						"type": "`$STRING`",
 					},
 					map[string]any{
 						"name": "height",
+						"short": "Image height in pixels",
 						"type": "`$INTEGER`",
 					},
 					map[string]any{
 						"name": "id",
+						"short": "Unique identifier for the image",
 						"type": "`$STRING`",
 					},
 					map[string]any{
 						"name": "thumbnail",
+						"short": "URL to the thumbnail version of the image",
 						"type": "`$STRING`",
 					},
 					map[string]any{
 						"name": "url",
+						"short": "URL to the image",
 						"type": "`$STRING`",
 					},
 					map[string]any{
 						"name": "width",
+						"short": "Image width in pixels",
 						"type": "`$INTEGER`",
 					},
 				},

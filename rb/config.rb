@@ -19,6 +19,9 @@ module GithubApi2Config
     {
       "main" => {
         "name" => "GithubApi2",
+        "slug" => "github-api2",
+        "version" => "0.0.1",
+        "target" => "rb",
       },
       "feature" => {
         "test" => {
@@ -42,14 +45,17 @@ module GithubApi2Config
           "fields" => [
             {
               "name" => "id",
+              "short" => "Unique identifier for the artist",
               "type" => "`$STRING`",
             },
             {
               "name" => "name",
+              "short" => "Name of the artist",
               "type" => "`$STRING`",
             },
             {
               "name" => "url",
+              "short" => "URL to the artist's profile or portfolio",
               "type" => "`$STRING`",
             },
           ],
@@ -110,26 +116,32 @@ module GithubApi2Config
             },
             {
               "name" => "category",
+              "short" => "Category of the image",
               "type" => "`$STRING`",
             },
             {
               "name" => "height",
+              "short" => "Image height in pixels",
               "type" => "`$INTEGER`",
             },
             {
               "name" => "id",
+              "short" => "Unique identifier for the image",
               "type" => "`$STRING`",
             },
             {
               "name" => "thumbnail",
+              "short" => "URL to the thumbnail version of the image",
               "type" => "`$STRING`",
             },
             {
               "name" => "url",
+              "short" => "URL to the image",
               "type" => "`$STRING`",
             },
             {
               "name" => "width",
+              "short" => "Image width in pixels",
               "type" => "`$INTEGER`",
             },
           ],

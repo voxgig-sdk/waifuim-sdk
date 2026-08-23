@@ -97,9 +97,9 @@ artist = client.Artist
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `id` | `String` | No |  |
-| `name` | `String` | No |  |
-| `url` | `String` | No |  |
+| `id` | `String` | No | Unique identifier for the artist |
+| `name` | `String` | No | Name of the artist |
+| `url` | `String` | No | URL to the artist's profile or portfolio |
 
 ### Operations
 
@@ -152,12 +152,12 @@ image = client.Image
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `artist` | `Hash` | No |  |
-| `category` | `String` | No |  |
-| `height` | `Integer` | No |  |
-| `id` | `String` | No |  |
-| `thumbnail` | `String` | No |  |
-| `url` | `String` | No |  |
-| `width` | `Integer` | No |  |
+| `category` | `String` | No | Category of the image |
+| `height` | `Integer` | No | Image height in pixels |
+| `id` | `String` | No | Unique identifier for the image |
+| `thumbnail` | `String` | No | URL to the thumbnail version of the image |
+| `url` | `String` | No | URL to the image |
+| `width` | `Integer` | No | Image width in pixels |
 
 ### Operations
 

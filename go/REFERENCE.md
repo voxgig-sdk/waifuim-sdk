@@ -102,9 +102,9 @@ fmt.Println(artist.GetName()) // "artist"
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `id` | `string` | No |  |
-| `name` | `string` | No |  |
-| `url` | `string` | No |  |
+| `id` | `string` | No | Unique identifier for the artist |
+| `name` | `string` | No | Name of the artist |
+| `url` | `string` | No | URL to the artist's profile or portfolio |
 
 ### Operations
 
@@ -156,12 +156,12 @@ fmt.Println(image.GetName()) // "image"
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `artist` | `map[string]any` | No |  |
-| `category` | `string` | No |  |
-| `height` | `int` | No |  |
-| `id` | `string` | No |  |
-| `thumbnail` | `string` | No |  |
-| `url` | `string` | No |  |
-| `width` | `int` | No |  |
+| `category` | `string` | No | Category of the image |
+| `height` | `int` | No | Image height in pixels |
+| `id` | `string` | No | Unique identifier for the image |
+| `thumbnail` | `string` | No | URL to the thumbnail version of the image |
+| `url` | `string` | No | URL to the image |
+| `width` | `int` | No | Image width in pixels |
 
 ### Operations
 

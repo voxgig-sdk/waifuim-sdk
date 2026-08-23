@@ -248,9 +248,9 @@ On error, `ok` is `false` and `$err` contains the error value.
 
 | Field | Description |
 | --- | --- |
-| `id` |  |
-| `name` |  |
-| `url` |  |
+| `id` | Unique identifier for the artist |
+| `name` | Name of the artist |
+| `url` | URL to the artist's profile or portfolio |
 
 Operations: List.
 
@@ -261,12 +261,12 @@ API path: `/artists`
 | Field | Description |
 | --- | --- |
 | `artist` |  |
-| `category` |  |
-| `height` |  |
-| `id` |  |
-| `thumbnail` |  |
-| `url` |  |
-| `width` |  |
+| `category` | Category of the image |
+| `height` | Image height in pixels |
+| `id` | Unique identifier for the image |
+| `thumbnail` | URL to the thumbnail version of the image |
+| `url` | URL to the image |
+| `width` | Image width in pixels |
 
 Operations: List.
 
@@ -291,9 +291,9 @@ Create an instance: `$artist = $client->Artist();`
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `id` | `string` |  |
-| `name` | `string` |  |
-| `url` | `string` |  |
+| `id` | `string` | Unique identifier for the artist |
+| `name` | `string` | Name of the artist |
+| `url` | `string` | URL to the artist's profile or portfolio |
 
 #### Example: List
 
@@ -318,12 +318,12 @@ Create an instance: `$image = $client->Image();`
 | Field | Type | Description |
 | --- | --- | --- |
 | `artist` | `array` |  |
-| `category` | `string` |  |
-| `height` | `int` |  |
-| `id` | `string` |  |
-| `thumbnail` | `string` |  |
-| `url` | `string` |  |
-| `width` | `int` |  |
+| `category` | `string` | Category of the image |
+| `height` | `int` | Image height in pixels |
+| `id` | `string` | Unique identifier for the image |
+| `thumbnail` | `string` | URL to the thumbnail version of the image |
+| `url` | `string` | URL to the image |
+| `width` | `int` | Image width in pixels |
 
 #### Example: List
 

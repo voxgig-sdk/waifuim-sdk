@@ -19,9 +19,20 @@ class Config {
     return fi
   }
 
+  // False for a feature added at runtime via options.extend (station's
+  // adopt path) - the constructor uses this to skip makeFeature for names
+  // no generated class backs.
+  hasFeature(this: any, fn: string) {
+    return null != FEATURE_CLASS[fn]
+  }
+
 
   main = {
     name: 'GithubApi2',
+        slug: "github-api2",
+    version: "0.0.1",
+    target: "ts",
+
   }
 
 
@@ -59,14 +70,17 @@ class Config {
       "fields": [
         {
           "name": "id",
+          "short": "Unique identifier for the artist",
           "type": "`$STRING`"
         },
         {
           "name": "name",
+          "short": "Name of the artist",
           "type": "`$STRING`"
         },
         {
           "name": "url",
+          "short": "URL to the artist's profile or portfolio",
           "type": "`$STRING`"
         }
       ],
@@ -127,26 +141,32 @@ class Config {
         },
         {
           "name": "category",
+          "short": "Category of the image",
           "type": "`$STRING`"
         },
         {
           "name": "height",
+          "short": "Image height in pixels",
           "type": "`$INTEGER`"
         },
         {
           "name": "id",
+          "short": "Unique identifier for the image",
           "type": "`$STRING`"
         },
         {
           "name": "thumbnail",
+          "short": "URL to the thumbnail version of the image",
           "type": "`$STRING`"
         },
         {
           "name": "url",
+          "short": "URL to the image",
           "type": "`$STRING`"
         },
         {
           "name": "width",
+          "short": "Image width in pixels",
           "type": "`$INTEGER`"
         }
       ],
