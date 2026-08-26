@@ -44,7 +44,8 @@ class ArtistEntity extends GithubApi2EntityBase<Artist> {
     const {
       makeContext,
       done,
-      error,
+      // The registry name is `makeError`; `error` is the local alias.
+      makeError: error,
       featureHook,
       makePoint,
       makeRequest,
