@@ -23,9 +23,8 @@ class Artist(TypedDict, total=False):
 
 
 class ArtistListMatch(TypedDict, total=False):
-    id: str
-    name: str
-    url: str
+    page: int
+    page_size: int
 
 
 class Image(TypedDict, total=False):
@@ -39,10 +38,6 @@ class Image(TypedDict, total=False):
 
 
 class ImageListMatch(TypedDict, total=False):
-    artist: dict
     category: str
-    height: int
-    id: str
-    thumbnail: str
-    url: str
-    width: int
+    page: int
+    page_size: int

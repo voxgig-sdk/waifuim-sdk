@@ -12,9 +12,8 @@
 ---@field url? string
 
 ---@class ArtistListMatch
----@field id? string
----@field name? string
----@field url? string
+---@field page? number
+---@field page_size? number
 
 ---@class Image
 ---@field artist? table
@@ -26,13 +25,9 @@
 ---@field width? number
 
 ---@class ImageListMatch
----@field artist? table
 ---@field category? string
----@field height? number
----@field id? string
----@field thumbnail? string
----@field url? string
----@field width? number
+---@field page? number
+---@field page_size? number
 
 local M = {}
 

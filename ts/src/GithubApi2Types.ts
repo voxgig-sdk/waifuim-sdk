@@ -12,9 +12,8 @@ export interface Artist {
 }
 
 export interface ArtistListMatch {
-  id?: string
-  name?: string
-  url?: string
+  page?: number
+  page_size?: number
 }
 
 export interface Image {
@@ -28,12 +27,8 @@ export interface Image {
 }
 
 export interface ImageListMatch {
-  artist?: Record<string, any>
   category?: string
-  height?: number
-  id?: string
-  thumbnail?: string
-  url?: string
-  width?: number
+  page?: number
+  page_size?: number
 }
 

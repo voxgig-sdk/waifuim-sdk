@@ -23,9 +23,8 @@ class Artist
 /** Request payload for Artist#list. */
 class ArtistListMatch
 {
-    public ?string $id = null;
-    public ?string $name = null;
-    public ?string $url = null;
+    public ?int $page = null;
+    public ?int $page_size = null;
 }
 
 /** Image entity data model. */
@@ -43,12 +42,8 @@ class Image
 /** Request payload for Image#list. */
 class ImageListMatch
 {
-    public ?array $artist = null;
     public ?string $category = null;
-    public ?int $height = null;
-    public ?string $id = null;
-    public ?string $thumbnail = null;
-    public ?string $url = null;
-    public ?int $width = null;
+    public ?int $page = null;
+    public ?int $page_size = null;
 }
 

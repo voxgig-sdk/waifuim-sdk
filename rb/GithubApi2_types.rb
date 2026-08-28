@@ -27,18 +27,14 @@ Artist = Struct.new(
 
 # Request payload for Artist#list.
 #
-# @!attribute [rw] id
-#   @return [String, nil]
+# @!attribute [rw] page
+#   @return [Integer, nil]
 #
-# @!attribute [rw] name
-#   @return [String, nil]
-#
-# @!attribute [rw] url
-#   @return [String, nil]
+# @!attribute [rw] page_size
+#   @return [Integer, nil]
 ArtistListMatch = Struct.new(
-  :id,
-  :name,
-  :url,
+  :page,
+  :page_size,
   keyword_init: true
 )
 
@@ -77,34 +73,18 @@ Image = Struct.new(
 
 # Request payload for Image#list.
 #
-# @!attribute [rw] artist
-#   @return [Hash, nil]
-#
 # @!attribute [rw] category
 #   @return [String, nil]
 #
-# @!attribute [rw] height
+# @!attribute [rw] page
 #   @return [Integer, nil]
 #
-# @!attribute [rw] id
-#   @return [String, nil]
-#
-# @!attribute [rw] thumbnail
-#   @return [String, nil]
-#
-# @!attribute [rw] url
-#   @return [String, nil]
-#
-# @!attribute [rw] width
+# @!attribute [rw] page_size
 #   @return [Integer, nil]
 ImageListMatch = Struct.new(
-  :artist,
   :category,
-  :height,
-  :id,
-  :thumbnail,
-  :url,
-  :width,
+  :page,
+  :page_size,
   keyword_init: true
 )
 

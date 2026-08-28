@@ -21,9 +21,8 @@ type Artist struct {
 
 // ArtistListMatch is the typed request payload for Artist.ListTyped.
 type ArtistListMatch struct {
-	Id *string `json:"id,omitempty"`
-	Name *string `json:"name,omitempty"`
-	Url *string `json:"url,omitempty"`
+	Page *int `json:"page,omitempty"`
+	PageSize *int `json:"page_size,omitempty"`
 }
 
 // Image is the typed data model for the image entity.
@@ -39,13 +38,9 @@ type Image struct {
 
 // ImageListMatch is the typed request payload for Image.ListTyped.
 type ImageListMatch struct {
-	Artist *map[string]any `json:"artist,omitempty"`
 	Category *string `json:"category,omitempty"`
-	Height *int `json:"height,omitempty"`
-	Id *string `json:"id,omitempty"`
-	Thumbnail *string `json:"thumbnail,omitempty"`
-	Url *string `json:"url,omitempty"`
-	Width *int `json:"width,omitempty"`
+	Page *int `json:"page,omitempty"`
+	PageSize *int `json:"page_size,omitempty"`
 }
 
 // asMap turns a typed request/data struct into the map[string]any the
