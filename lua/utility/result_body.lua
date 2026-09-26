@@ -1,4 +1,4 @@
--- GithubApi2 SDK utility: result_body
+-- Waifuim SDK utility: result_body
 
 local function result_body_util(ctx)
   local response = ctx.response

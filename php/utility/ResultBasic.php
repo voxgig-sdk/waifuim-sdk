@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-// GithubApi2 SDK utility: result_basic
+// Waifuim SDK utility: result_basic
 
-class GithubApi2ResultBasic
+class WaifuimResultBasic
 {
-    public static function call(GithubApi2Context $ctx): ?GithubApi2Result
+    public static function call(WaifuimContext $ctx): ?WaifuimResult
     {
         $response = $ctx->response;
         $result = $ctx->result;
@@ -15,7 +15,7 @@ class GithubApi2ResultBasic
             if ($result->status >= 400) {
                 $msg = "request: {$result->status}: {$result->status_text}";
                 if ($result->err) {
-                    $prev = ($result->err instanceof GithubApi2Error) ? $result->err->msg : (string)$result->err;
+                    $prev = ($result->err instanceof WaifuimError) ? $result->err->msg : (string)$result->err;
                     $result->err = $ctx->make_error('request_status', "{$prev}: {$msg}");
                 } else {
                     $result->err = $ctx->make_error('request_status', $msg);

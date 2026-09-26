@@ -1,8 +1,8 @@
-# GithubApi2 SDK utility: make_spec
+# Waifuim SDK utility: make_spec
 require_relative 'struct/voxgig_struct'
 require_relative 'graphql'
 require_relative '../core/spec'
-module GithubApi2Utilities
+module WaifuimUtilities
   MakeSpec = ->(ctx) {
     if ctx.out["spec"]
       ctx.spec = ctx.out["spec"]
@@ -21,7 +21,7 @@ module GithubApi2Utilities
     parts = VoxgigStruct.getprop(point, "parts") if point
     parts = [] unless parts.is_a?(Array)
 
-    ctx.spec = GithubApi2Spec.new({
+    ctx.spec = WaifuimSpec.new({
       "base" => base, "prefix" => prefix, "parts" => parts,
       "suffix" => suffix, "step" => "start",
     })

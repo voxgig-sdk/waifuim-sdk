@@ -1,4 +1,4 @@
--- GithubApi2 SDK utility: make_response
+-- Waifuim SDK utility: make_response
 
 local function make_response_util(ctx)
   if ctx.out["response"] ~= nil then

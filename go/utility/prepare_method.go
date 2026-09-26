@@ -3,9 +3,9 @@ package utility
 import (
 	"strings"
 
-	vs "github.com/voxgig-sdk/github-api2-sdk/go/utility/struct"
+	vs "github.com/voxgig-sdk/waifuim-sdk/go/utility/struct"
 
-	"github.com/voxgig-sdk/github-api2-sdk/go/core"
+	"github.com/voxgig-sdk/waifuim-sdk/go/core"
 )
 
 func prepareMethodUtil(ctx *core.Context) string {
@@ -30,5 +30,9 @@ func prepareMethodUtil(ctx *core.Context) string {
 	if m, ok := methodMap[opname]; ok {
 		return m
 	}
-	return "GET"
+
+	// An op the API does not define resolves NO method - ts answers
+	// undefined here, and "" is go's spelling of the same "no value"
+	// (the corpus pins this via primary.prepareMethod).
+	return ""
 }

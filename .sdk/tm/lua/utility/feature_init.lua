@@ -1,4 +1,4 @@
--- GithubApi2 SDK utility: feature_init
+-- Waifuim SDK utility: feature_init
 
 local vs = require("utility.struct.struct")
 

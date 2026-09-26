@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-// GithubApi2 SDK spec
+// Waifuim SDK spec
 
-class GithubApi2Spec
+class WaifuimSpec
 {
     public array $parts;
     public array $headers;

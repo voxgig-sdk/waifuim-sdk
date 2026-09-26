@@ -1,32 +1,33 @@
 
-const envlocal = __dirname + '/../../../.env.local'
-require('dotenv').config({ quiet: true, path: [envlocal] })
 
 import { test, describe, afterEach } from 'node:test'
 import assert from 'node:assert'
+import { createLiveTransport } from '../../live-runner'
 
 
-import { GithubApi2SDK } from '../../..'
+import { WaifuimSDK } from '../../..'
 
 import {
   envOverride,
+  liveClientOptions,
   liveDelay,
+  loadEnvLocal,
   maybeSkipControl,
   skipIfMissingIds,
 } from '../../utility'
 
 
+loadEnvLocal(__dirname + '/../../../.env.local')
+
+
 describe('ImageDirect', async () => {
 
   // Per-test live pacing. Delay is read from sdk-test-control.json's
-  // `test.live.delayMs`; only sleeps when GITHUB_API2_TEST_LIVE=TRUE.
-  afterEach(liveDelay('GITHUB_API2_TEST_LIVE'))
+  // `test.live.delayMs`; only sleeps when WAIFUIM_TEST_LIVE=TRUE.
+  afterEach(liveDelay('WAIFUIM_TEST_LIVE'))
 
   test('direct-exists', async () => {
-    const sdk = new GithubApi2SDK({
-      // Concrete base: a live construction must satisfy any server
-      // variables a templated base URL declares; overriding base with a
-      // literal (as the direct flow tests do) sidesteps the requirement.
+    const sdk = new WaifuimSDK({
       base: 'http://localhost:8080',
       system: { fetch: async () => ({}) }
     })
@@ -36,6 +37,7 @@ describe('ImageDirect', async () => {
 
 
   test('direct-list-image', async (t: any) => {
+    if (liveScenariosActive()) { t.skip('Covered by live operation scenarios'); return }
     const setup = directSetup([{ id: 'direct01' }, { id: 'direct02' }])
     if (maybeSkipControl(t, 'direct', 'direct-list-image', setup.live)) return
     const { client, calls } = setup
@@ -51,16 +53,18 @@ describe('ImageDirect', async () => {
     })
 
     if (setup.live) {
-      // Live mode is lenient: synthetic IDs frequently 4xx and the list-
-      // response shape varies wildly across public APIs. Skip rather than
-      // fail when the call doesn't return a usable list.
-      if (!result.ok || result.status < 200 || result.status >= 300) {
-        return
-      }
-      const listArr = unwrapListData(result.data)
-      if (!Array.isArray(listArr)) {
-        return
-      }
+      // STRICT live mode: a non-2xx is a real failure - this project owns
+      // the server it points at, so there is nothing to be lenient about.
+      //
+      // What is NOT asserted here is the MOCK's own fixtures. `direct01`
+      // is a scripted id and `calls` records the mock transport; neither
+      // exists on a live run, so asserting them made strict mode mean
+      // "compare the live server against the mock's script" - a suite that
+      // could not pass against any real API, including this project's own.
+      assert(result.ok === true,
+        'Live request failed: HTTP ' + result.status)
+      assert(result.status >= 200 && result.status < 300)
+      assert(Array.isArray(unwrapListData(result.data)), 'Expected live list response')
     } else {
       assert(result.ok === true)
       assert(result.status === 200)
@@ -77,26 +81,31 @@ describe('ImageDirect', async () => {
 
 
 
+function liveScenariosActive() { return false && process.env.WAIFUIM_TEST_LIVE === 'TRUE' }
 function directSetup(mockres?: any) {
   const calls: any[] = []
 
   const env = envOverride({
-    'GITHUB_API2_TEST_IMAGE_ENTID': {},
-    'GITHUB_API2_TEST_LIVE': 'FALSE',
+    'WAIFUIM_TEST_IMAGE_ENTID': {},
+    'WAIFUIM_TEST_LIVE': 'FALSE',
   })
 
-  const live = 'TRUE' === env.GITHUB_API2_TEST_LIVE
+  const live = 'TRUE' === env.WAIFUIM_TEST_LIVE
 
   if (live) {
-    const client = new GithubApi2SDK({
-    })
+    const transport = createLiveTransport()
+    // Merged so the generated fields win: sdk-test-control.json's
+    // test.client.options adds to the live client, it does not redirect it.
+    const client = new WaifuimSDK(
+      Object.assign({}, liveClientOptions(), { system: { fetch: transport.fetch },
+      }))
 
-    let idmap: any = env['GITHUB_API2_TEST_IMAGE_ENTID']
+    let idmap: any = env['WAIFUIM_TEST_IMAGE_ENTID']
     if ('string' === typeof idmap && idmap.startsWith('{')) {
       idmap = JSON.parse(idmap)
     }
 
-    return { client, calls, live, idmap }
+    return { client, calls, live, idmap, transport }
   }
 
   const mockFetch = async (url: string, init: any) => {
@@ -109,7 +118,7 @@ function directSetup(mockres?: any) {
     }
   }
 
-  const client = new GithubApi2SDK({
+  const client = new WaifuimSDK({
     base: 'http://localhost:8080',
     system: { fetch: mockFetch },
   })

@@ -1,6 +1,6 @@
-# GithubApi2 SDK utility: prepare_params
+# Waifuim SDK utility: prepare_params
 require_relative 'struct/voxgig_struct'
-module GithubApi2Utilities
+module WaifuimUtilities
   PrepareParams = ->(ctx) {
     utility = ctx.utility
     point = ctx.point

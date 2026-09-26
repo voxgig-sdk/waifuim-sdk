@@ -1,5 +1,5 @@
-# GithubApi2 SDK utility: result_body
-module GithubApi2Utilities
+# Waifuim SDK utility: result_body
+module WaifuimUtilities
   ResultBody = ->(ctx) {
     response = ctx.response
     result = ctx.result

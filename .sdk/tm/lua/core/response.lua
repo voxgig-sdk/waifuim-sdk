@@ -1,4 +1,4 @@
--- GithubApi2 SDK response
+-- Waifuim SDK response
 
 local vs = require("utility.struct.struct")
 

@@ -2,7 +2,7 @@
 
 require "minitest/autorun"
 require "json"
-require_relative "../GithubApi2_sdk"
+require_relative "../Waifuim_sdk"
 require_relative "runner"
 
 class ArtistDirectTest < Minitest::Test
@@ -60,16 +60,18 @@ def artist_direct_setup(mockres)
   calls = []
 
   env = Runner.env_override({
-    "GITHUB_API2_TEST_ARTIST_ENTID" => {},
-    "GITHUB_API2_TEST_LIVE" => "FALSE",
+    "WAIFUIM_TEST_ARTIST_ENTID" => {},
+    "WAIFUIM_TEST_LIVE" => "FALSE",
   })
 
-  live = env["GITHUB_API2_TEST_LIVE"] == "TRUE"
+  live = env["WAIFUIM_TEST_LIVE"] == "TRUE"
 
   if live
-    merged_opts = {
-    }
-    client = GithubApi2SDK.new(merged_opts)
+    # Merged so the generated fields win: sdk-test-control.json's
+    # test.client.options adds to the live client, it does not redirect it.
+    merged_opts = Runner.live_client_options.merge({
+    })
+    client = WaifuimSDK.new(merged_opts)
     return {
       client: client,
       calls: calls,
@@ -94,7 +96,7 @@ def artist_direct_setup(mockres)
     }, nil
   }
 
-  client = GithubApi2SDK.new({
+  client = WaifuimSDK.new({
     "base" => "http://localhost:8080",
     "system" => {
       "fetch" => mock_fetch,

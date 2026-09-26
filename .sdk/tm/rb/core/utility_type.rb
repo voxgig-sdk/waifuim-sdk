@@ -1,6 +1,6 @@
-# GithubApi2 SDK utility type
+# Waifuim SDK utility type
 
-class GithubApi2Utility
+class WaifuimUtility
   attr_accessor :clean, :done, :make_error, :feature_add, :feature_hook,
                 :feature_init, :fetcher, :make_fetch_def, :make_context,
                 :make_options, :make_request, :make_response, :make_result,
@@ -23,7 +23,7 @@ class GithubApi2Utility
   end
 
   def self.copy(src)
-    u = GithubApi2Utility.new
+    u = WaifuimUtility.new
     src.instance_variables.each do |var|
       u.instance_variable_set(var, src.instance_variable_get(var))
     end

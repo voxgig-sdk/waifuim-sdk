@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-// GithubApi2 SDK utility: feature_add
+// Waifuim SDK utility: feature_add
 
-class GithubApi2FeatureAdd
+class WaifuimFeatureAdd
 {
-    public static function call(GithubApi2Context $ctx, mixed $f): void
+    public static function call(WaifuimContext $ctx, mixed $f): void
     {
         $features = &$ctx->client->features;
 

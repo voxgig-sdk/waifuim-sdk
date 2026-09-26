@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-// GithubApi2 SDK utility registration
+// Waifuim SDK utility registration
 
 require_once __DIR__ . '/../core/UtilityType.php';
 require_once __DIR__ . '/Clean.php';
@@ -35,36 +35,36 @@ require_once __DIR__ . '/ResultHeaders.php';
 require_once __DIR__ . '/TransformRequest.php';
 require_once __DIR__ . '/TransformResponse.php';
 
-GithubApi2Utility::setRegistrar(function (GithubApi2Utility $u): void {
-    $u->clean = [GithubApi2Clean::class, 'call'];
-    $u->done = [GithubApi2Done::class, 'call'];
-    $u->make_error = [GithubApi2MakeError::class, 'call'];
-    $u->feature_add = [GithubApi2FeatureAdd::class, 'call'];
-    $u->feature_hook = [GithubApi2FeatureHook::class, 'call'];
-    $u->feature_init = [GithubApi2FeatureInit::class, 'call'];
-    $u->fetcher = [GithubApi2Fetcher::class, 'call'];
-    $u->make_fetch_def = [GithubApi2MakeFetchDef::class, 'call'];
-    $u->make_context = [GithubApi2MakeContext::class, 'call'];
-    $u->make_options = [GithubApi2MakeOptions::class, 'call'];
-    $u->make_request = [GithubApi2MakeRequest::class, 'call'];
-    $u->make_response = [GithubApi2MakeResponse::class, 'call'];
-    $u->make_result = [GithubApi2MakeResult::class, 'call'];
-    $u->make_point = [GithubApi2MakePoint::class, 'call'];
-    $u->make_spec = [GithubApi2MakeSpec::class, 'call'];
-    $u->make_url = [GithubApi2MakeUrl::class, 'call'];
-    $u->param = [GithubApi2Param::class, 'call'];
-    $u->prepare_auth = [GithubApi2PrepareAuth::class, 'call'];
-    $u->prepare_body = [GithubApi2PrepareBody::class, 'call'];
-    $u->prepare_headers = [GithubApi2PrepareHeaders::class, 'call'];
-    $u->prepare_method = [GithubApi2PrepareMethod::class, 'call'];
-    $u->prepare_params = [GithubApi2PrepareParams::class, 'call'];
-    $u->prepare_path = [GithubApi2PreparePath::class, 'call'];
-    $u->prepare_query = [GithubApi2PrepareQuery::class, 'call'];
-    $u->graphql_body = [GithubApi2Graphql::class, 'body'];
-    $u->graphql_errors = [GithubApi2Graphql::class, 'errors'];
-    $u->result_basic = [GithubApi2ResultBasic::class, 'call'];
-    $u->result_body = [GithubApi2ResultBody::class, 'call'];
-    $u->result_headers = [GithubApi2ResultHeaders::class, 'call'];
-    $u->transform_request = [GithubApi2TransformRequest::class, 'call'];
-    $u->transform_response = [GithubApi2TransformResponse::class, 'call'];
+WaifuimUtility::setRegistrar(function (WaifuimUtility $u): void {
+    $u->clean = [WaifuimClean::class, 'call'];
+    $u->done = [WaifuimDone::class, 'call'];
+    $u->make_error = [WaifuimMakeError::class, 'call'];
+    $u->feature_add = [WaifuimFeatureAdd::class, 'call'];
+    $u->feature_hook = [WaifuimFeatureHook::class, 'call'];
+    $u->feature_init = [WaifuimFeatureInit::class, 'call'];
+    $u->fetcher = [WaifuimFetcher::class, 'call'];
+    $u->make_fetch_def = [WaifuimMakeFetchDef::class, 'call'];
+    $u->make_context = [WaifuimMakeContext::class, 'call'];
+    $u->make_options = [WaifuimMakeOptions::class, 'call'];
+    $u->make_request = [WaifuimMakeRequest::class, 'call'];
+    $u->make_response = [WaifuimMakeResponse::class, 'call'];
+    $u->make_result = [WaifuimMakeResult::class, 'call'];
+    $u->make_point = [WaifuimMakePoint::class, 'call'];
+    $u->make_spec = [WaifuimMakeSpec::class, 'call'];
+    $u->make_url = [WaifuimMakeUrl::class, 'call'];
+    $u->param = [WaifuimParam::class, 'call'];
+    $u->prepare_auth = [WaifuimPrepareAuth::class, 'call'];
+    $u->prepare_body = [WaifuimPrepareBody::class, 'call'];
+    $u->prepare_headers = [WaifuimPrepareHeaders::class, 'call'];
+    $u->prepare_method = [WaifuimPrepareMethod::class, 'call'];
+    $u->prepare_params = [WaifuimPrepareParams::class, 'call'];
+    $u->prepare_path = [WaifuimPreparePath::class, 'call'];
+    $u->prepare_query = [WaifuimPrepareQuery::class, 'call'];
+    $u->graphql_body = [WaifuimGraphql::class, 'body'];
+    $u->graphql_errors = [WaifuimGraphql::class, 'errors'];
+    $u->result_basic = [WaifuimResultBasic::class, 'call'];
+    $u->result_body = [WaifuimResultBody::class, 'call'];
+    $u->result_headers = [WaifuimResultHeaders::class, 'call'];
+    $u->transform_request = [WaifuimTransformRequest::class, 'call'];
+    $u->transform_response = [WaifuimTransformResponse::class, 'call'];
 });

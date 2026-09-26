@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 // Artist direct test
 
-require_once __DIR__ . '/../githubapi2_sdk.php';
+require_once __DIR__ . '/../waifuim_sdk.php';
 require_once __DIR__ . '/Runner.php';
 
 use PHPUnit\Framework\TestCase;
@@ -66,16 +66,18 @@ function artist_direct_setup($mockres)
     $calls = new \ArrayObject();
 
     $env = Runner::env_override([
-        "GITHUB_API2_TEST_ARTIST_ENTID" => [],
-        "GITHUB_API2_TEST_LIVE" => "FALSE",
+        "WAIFUIM_TEST_ARTIST_ENTID" => [],
+        "WAIFUIM_TEST_LIVE" => "FALSE",
     ]);
 
-    $live = $env["GITHUB_API2_TEST_LIVE"] === "TRUE";
+    $live = $env["WAIFUIM_TEST_LIVE"] === "TRUE";
 
     if ($live) {
-        $merged_opts = [
-        ];
-        $client = new GithubApi2SDK($merged_opts);
+        // Merged so the generated fields win: sdk-test-control.json's
+        // test.client.options adds to the live client, it does not redirect it.
+        $merged_opts = array_merge(Runner::live_client_options(), [
+        ]);
+        $client = new WaifuimSDK($merged_opts);
         return [
             "client" => $client,
             "calls" => $calls,
@@ -103,7 +105,7 @@ function artist_direct_setup($mockres)
         ];
     };
 
-    $client = new GithubApi2SDK([
+    $client = new WaifuimSDK([
         "base" => "http://localhost:8080",
         "system" => [
             "fetch" => $mock_fetch,

@@ -1,19 +1,19 @@
-# GithubApi2 SDK context
+# Waifuim SDK context
 
 from __future__ import annotations
 import random
 
 from projectname_sdk.utility.voxgig_struct import voxgig_struct as vs
-from projectname_sdk.core.control import GithubApi2Control
-from projectname_sdk.core.operation import GithubApi2Operation
-from projectname_sdk.core.spec import GithubApi2Spec
-from projectname_sdk.core.result import GithubApi2Result
-from projectname_sdk.core.response import GithubApi2Response
-from projectname_sdk.core.error import GithubApi2Error
+from projectname_sdk.core.control import WaifuimControl
+from projectname_sdk.core.operation import WaifuimOperation
+from projectname_sdk.core.spec import WaifuimSpec
+from projectname_sdk.core.result import WaifuimResult
+from projectname_sdk.core.response import WaifuimResponse
+from projectname_sdk.core.error import WaifuimError
 from projectname_sdk.core.helpers import get_ctx_prop, to_map
 
 
-class GithubApi2Context:
+class WaifuimContext:
     def __init__(self, ctxmap=None, basectx=None):
         self.id = "C" + str(random.randint(10000000, 99999999))
         self.out = {}
@@ -40,7 +40,7 @@ class GithubApi2Context:
             self.utility = None
 
         # Ctrl
-        self.ctrl = GithubApi2Control()
+        self.ctrl = WaifuimControl()
         ctrl_raw = get_ctx_prop(ctxmap, "ctrl")
         if isinstance(ctrl_raw, dict):
             if ctrl_raw.get("throw_err") is not None:
@@ -53,7 +53,8 @@ class GithubApi2Context:
                 self.ctrl.actor = ctrl_raw["actor"]
             if isinstance(ctrl_raw.get("paging"), dict):
                 self.ctrl.paging = ctrl_raw["paging"]
-        elif basectx is not None and basectx.ctrl is not None:
+        elif (basectx is not None and basectx.ctrl is not None
+              and get_ctx_prop(ctxmap, "opname") is None):
             self.ctrl = basectx.ctrl
 
         # Meta
@@ -137,7 +138,7 @@ class GithubApi2Context:
 
         # Spec
         sp = get_ctx_prop(ctxmap, "spec")
-        if isinstance(sp, GithubApi2Spec):
+        if isinstance(sp, WaifuimSpec):
             self.spec = sp
         elif basectx is not None:
             self.spec = basectx.spec
@@ -146,7 +147,7 @@ class GithubApi2Context:
 
         # Result
         r = get_ctx_prop(ctxmap, "result")
-        if isinstance(r, GithubApi2Result):
+        if isinstance(r, WaifuimResult):
             self.result = r
         elif basectx is not None:
             self.result = basectx.result
@@ -155,7 +156,7 @@ class GithubApi2Context:
 
         # Response
         rp = get_ctx_prop(ctxmap, "response")
-        if isinstance(rp, GithubApi2Response):
+        if isinstance(rp, WaifuimResponse):
             self.response = rp
         elif basectx is not None:
             self.response = basectx.response
@@ -180,7 +181,7 @@ class GithubApi2Context:
             return self.opmap[cache_key]
 
         if opname == "":
-            return GithubApi2Operation({})
+            return WaifuimOperation({})
 
         opcfg = vs.getpath(self.config, "entity." + entname + ".op." + opname)
 
@@ -194,7 +195,7 @@ class GithubApi2Context:
             if isinstance(t, list):
                 points = t
 
-        op = GithubApi2Operation({
+        op = WaifuimOperation({
             "entity": entname,
             "name": opname,
             "input": inpt,
@@ -205,4 +206,4 @@ class GithubApi2Context:
         return op
 
     def make_error(self, code, msg):
-        return GithubApi2Error(code, msg, self)
+        return WaifuimError(code, msg, self)

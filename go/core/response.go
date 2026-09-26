@@ -1,7 +1,7 @@
 package core
 
 import (
-	vs "github.com/voxgig-sdk/github-api2-sdk/go/utility/struct"
+	vs "github.com/voxgig-sdk/waifuim-sdk/go/utility/struct"
 )
 
 type Response struct {

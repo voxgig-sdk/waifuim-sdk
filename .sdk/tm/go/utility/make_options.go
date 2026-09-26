@@ -1,6 +1,7 @@
 package utility
 
 import (
+	"encoding/json"
 	"regexp"
 	"sort"
 	"strings"
@@ -13,18 +14,43 @@ import (
 // {name} placeholders in a templated server URL (OpenAPI server variables).
 var serverVarRe = regexp.MustCompile(`\{[A-Za-z0-9_]+\}`)
 
+func canonNumbers(node any) {
+	switch n := node.(type) {
+	case map[string]any:
+		for k, v := range n {
+			if num, ok := v.(json.Number); ok {
+				n[k] = canonNumber(num)
+			} else {
+				canonNumbers(v)
+			}
+		}
+	case []any:
+		for i, v := range n {
+			if num, ok := v.(json.Number); ok {
+				n[i] = canonNumber(num)
+			} else {
+				canonNumbers(v)
+			}
+		}
+	}
+}
+
+func canonNumber(n json.Number) any {
+	if i, err := n.Int64(); err == nil {
+		return i
+	}
+	if f, err := n.Float64(); err == nil {
+		return f
+	}
+	return n
+}
+
 func makeOptionsUtil(ctx *core.Context) map[string]any {
 	options := ctx.Options
 	if options == nil {
 		options = map[string]any{}
 	}
 
-	// Merge custom utility overrides onto the utility object.
-	// Read from original options before clone, since vs.Clone strips functions.
-	//
-	// A key naming a real utility member REPLACES it (overrideUtil); anything
-	// else is attached as a custom extra. This mirrors ts, where the utility is
-	// an open object and `setprop` does both at once.
 	if customUtils := core.ToMapAny(options["utility"]); customUtils != nil {
 		utility := ctx.Utility
 		if utility != nil {
@@ -36,14 +62,11 @@ func makeOptionsUtil(ctx *core.Context) map[string]any {
 		}
 	}
 
+	authval, authgiven := options["auth"]
+	authsuppressed := authgiven && authval == nil
+
 	opts := vs.Clone(options).(map[string]any)
 
-	// Feature add-order (feature #2). options.feature may be given as an ordered
-	// ARRAY of {name, active, ...opts} entries (the array position IS the order
-	// in which features are added), or as a {name:{opts}} map. Normalize an
-	// array to a map (so merge/validate/init are unchanged) and remember the
-	// explicit order; a map defaults to test-first so the `test` mock transport
-	// is installed as the base of the transport wrapper chain.
 	var featureorder []any
 	if farr, ok := opts["feature"].([]any); ok {
 		fmap := map[string]any{}
@@ -79,57 +102,11 @@ func makeOptionsUtil(ctx *core.Context) map[string]any {
 		}
 	}
 
-	optspec := map[string]any{
-		"apikey": "",
-		"base":   "http://localhost:8000",
-		"prefix": "",
-		"suffix": "",
-		"auth": map[string]any{
-			"prefix": "",
-		},
-		"headers": map[string]any{
-			"`$CHILD`": "`$STRING`",
-		},
-		"allow": map[string]any{
-			"method": "GET,PUT,POST,PATCH,DELETE,OPTIONS",
-			"op":     "create,update,load,list,remove,command,direct,graphql",
-		},
-		"entity": map[string]any{
-			"`$CHILD`": map[string]any{
-				"`$OPEN`": true,
-				"active":  false,
-				"alias":   map[string]any{},
-			},
-		},
-		"feature": map[string]any{
-			"`$CHILD`": map[string]any{
-				"`$OPEN`": true,
-				"active":  false,
-			},
-		},
-		"utility": map[string]any{},
-		"system":  map[string]any{},
-		"test": map[string]any{
-			"active": false,
-			"entity": map[string]any{
-				"`$OPEN`": true,
-			},
-		},
-		"clean": map[string]any{
-			"keys": "key,token,id",
-		},
-		// Server-variable values for a templated base URL (OpenAPI server
-		// variables): {name} placeholders in "base" are substituted from this
-		// map at construction. Spec defaults arrive via the generated config;
-		// user values override them.
-		"server": map[string]any{
-			"`$CHILD`": "",
-		},
-	}
+	optspec := core.OPTSPEC
 
 	// Preserve system.fetch before merge/validate.
 	var sysFetch any
-	if sf := vs.GetPath([]any{"system", "fetch"}, opts); sf != nil {
+	if sf := vs.GetPath(opts, []any{"system", "fetch"}); sf != nil {
 		sysFetch = sf
 	}
 
@@ -138,28 +115,31 @@ func makeOptionsUtil(ctx *core.Context) map[string]any {
 	// nested maps as merge TARGETS — one instance's options (server, headers,
 	// ...) would contaminate every instance constructed after it.
 	merged := vs.Merge([]any{map[string]any{}, vs.Clone(cfgopts), opts})
+
+	// To reflect a json.Number is a string, so the validator refuses one where
+	// the feature readers accept it. Canonicalise first: options decoded with
+	// UseNumber() are otherwise judged by a rule nothing else applies.
+	canonNumbers(merged)
+
 	validated, _ := vs.Validate(merged, optspec)
 	opts = validated.(map[string]any)
 
-	// Resolve a templated base URL (e.g. https://{tenant_id}.hanko.io).
-	// Every placeholder must resolve to a non-empty value: from
-	// options["server"] (user), else the config default. A placeholder that
-	// resolves to "" is a construction error in live mode — the URL cannot
-	// work — but in test mode substitutes the deterministic value
-	// "test-<name>" so offline tests need no configuration. The SDK
-	// constructor has no error return, so a missing required variable
-	// PANICS (construction-time misconfiguration, as regexp.MustCompile).
+	// Restore the suppression the optspec default would otherwise erase.
+	if authsuppressed {
+		opts["auth"] = nil
+	}
+
 	if base, ok := opts["base"].(string); ok && strings.Contains(base, "{") {
 		testmode := false
-		if ta, ok := vs.GetPath([]any{"test", "active"}, opts).(bool); ok && ta {
+		if ta, ok := vs.GetPath(opts, []any{"test", "active"}).(bool); ok && ta {
 			testmode = true
 		}
-		if fa, ok := vs.GetPath([]any{"feature", "test", "active"}, opts).(bool); ok && fa {
+		if fa, ok := vs.GetPath(opts, []any{"feature", "test", "active"}).(bool); ok && fa {
 			testmode = true
 		}
 		server := core.ToMapAny(opts["server"])
 		sdkname := "SDK"
-		if mn, ok := vs.GetPath([]any{"main", "name"}, config).(string); ok && mn != "" {
+		if mn, ok := vs.GetPath(config, []any{"main", "name"}).(string); ok && mn != "" {
 			sdkname = mn
 		}
 		resolved := serverVarRe.ReplaceAllStringFunc(base, func(ph string) string {
@@ -191,7 +171,7 @@ func makeOptionsUtil(ctx *core.Context) map[string]any {
 
 	// Derived clean config.
 	cleanKeys := "key,token,id"
-	if ck := vs.GetPath([]any{"clean", "keys"}, opts); ck != nil {
+	if ck := vs.GetPath(opts, []any{"clean", "keys"}); ck != nil {
 		if cks, ok := ck.(string); ok {
 			cleanKeys = cks
 		}
@@ -234,12 +214,6 @@ func makeOptionsUtil(ctx *core.Context) map[string]any {
 		} else {
 			ordered = append(ordered, names...)
 		}
-		// Station special case, mirroring test's: its transport wrap must
-		// sit immediately outside the base transport (inside retry/cache/
-		// netsim), so map-form activation hoists it to just after test -
-		// or first, when no test entry exists. Without this the sorted
-		// default would init station last and wrap OUTSIDE the recording
-		// features, turning its wire-truth events into fiction.
 		si := -1
 		for i, n := range ordered {
 			if n == "station" {

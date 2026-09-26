@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-// GithubApi2 SDK feature test
+// Waifuim SDK feature test
 //
 // Behavioural + coverage tests for the enterprise features shipped with
 // this SDK. Each block runs only when its feature is present (see
@@ -56,7 +56,7 @@ class FtClock
 
 // Control extension carrying the optional per-call fields some features
 // read (audit: actor; paging: paging).
-class FtCtrl extends GithubApi2Control
+class FtCtrl extends WaifuimControl
 {
     public mixed $actor = null;
     public mixed $paging = null;
@@ -86,9 +86,9 @@ class FtClient
     public string $mode = 'test';
     public array $features = [];
     public array $options;
-    private GithubApi2Utility $utility;
+    private WaifuimUtility $utility;
 
-    public function __construct(GithubApi2Utility $utility, array $options)
+    public function __construct(WaifuimUtility $utility, array $options)
     {
         $this->utility = $utility;
         $this->options = $options;
@@ -99,7 +99,7 @@ class FtClient
         return $this->options;
     }
 
-    public function get_utility(): GithubApi2Utility
+    public function get_utility(): WaifuimUtility
     {
         return $this->utility;
     }
@@ -119,7 +119,7 @@ class FtRecorder
 
     public function server(): callable
     {
-        return function (GithubApi2Context $_ctx, string $url, array $fetchdef): array {
+        return function (WaifuimContext $_ctx, string $url, array $fetchdef): array {
             $this->calls[] = ['url' => $url, 'fetchdef' => $fetchdef];
             $n = count($this->calls);
             if ($this->reply !== null) {
@@ -142,14 +142,14 @@ class FtHarness
     private static ?array $feature_config = null;
 
     public FtClient $client;
-    public GithubApi2Utility $utility;
-    public GithubApi2Context $rootctx;
+    public WaifuimUtility $utility;
+    public WaifuimContext $rootctx;
 
     // True when this SDK was generated with the named feature.
     public static function hasFeature(string $name): bool
     {
         if (self::$feature_config === null) {
-            $config = GithubApi2Config::shared_config();
+            $config = WaifuimConfig::shared_config();
             $f = $config['feature'] ?? [];
             self::$feature_config = is_array($f) ? $f : [];
         }
@@ -181,10 +181,10 @@ class FtHarness
         string $base = 'http://api.test',
         array $headers = []
     ) {
-        $utility = new GithubApi2Utility();
+        $utility = new WaifuimUtility();
         $this->utility = $utility;
 
-        $utility->fetcher = $server ?? function (GithubApi2Context $_ctx, string $_url, array $fetchdef): array {
+        $utility->fetcher = $server ?? function (WaifuimContext $_ctx, string $_url, array $fetchdef): array {
             $method = strtoupper((string)($fetchdef['method'] ?? 'GET'));
             return [self::response(200, ['ok' => true, 'method' => $method]), null];
         };
@@ -207,7 +207,7 @@ class FtHarness
             if (!self::hasFeature($name)) {
                 continue;
             }
-            $f = GithubApi2Config::make_feature($name);
+            $f = WaifuimConfig::make_feature($name);
             $fopts = array_merge(['active' => true], $fspec['options'] ?? []);
             $this->client->options['feature'][$f->get_name()] = $fopts;
             $f->init($this->rootctx, $fopts);
@@ -241,7 +241,7 @@ class FtHarness
         return 'GET';
     }
 
-    private static function buildUrl(GithubApi2Spec $spec): string
+    private static function buildUrl(WaifuimSpec $spec): string
     {
         $keys = [];
         foreach ($spec->query as $k => $v) {
@@ -286,12 +286,12 @@ class FtHarness
         ($utility->feature_hook)($ctx, 'PostConstructEntity');
 
         ($utility->feature_hook)($ctx, 'PrePoint');
-        if (($ctx->out['point'] ?? null) instanceof GithubApi2Error) {
+        if (($ctx->out['point'] ?? null) instanceof WaifuimError) {
             return $this->fail($ctx, $ctx->out['point']);
         }
 
         ($utility->feature_hook)($ctx, 'PreSpec');
-        $ctx->spec = new GithubApi2Spec([
+        $ctx->spec = new WaifuimSpec([
             'method' => $method,
             'base' => $this->client->options['base'],
             'path' => $o['path'] ?? ('/' . $entity),
@@ -317,12 +317,12 @@ class FtHarness
         [$fetched, $fetch_err] = ($utility->fetcher)($ctx, $fetchdef['url'], $fetchdef);
 
         if (is_array($fetched)) {
-            $ctx->response = new GithubApi2Response($fetched);
+            $ctx->response = new WaifuimResponse($fetched);
         }
 
         ($utility->feature_hook)($ctx, 'PreResponse');
 
-        $result = new GithubApi2Result([]);
+        $result = new WaifuimResult([]);
         $ctx->result = $result;
 
         if ($fetch_err !== null) {
@@ -358,7 +358,7 @@ class FtHarness
         return $this->fail($ctx, $result->err);
     }
 
-    private function fail(GithubApi2Context $ctx, mixed $err): array
+    private function fail(WaifuimContext $ctx, mixed $err): array
     {
         ($this->utility->feature_hook)($ctx, 'PreUnexpected');
         return [
@@ -381,7 +381,7 @@ class FeatureTest extends TestCase
 
     private static function code(mixed $err): string
     {
-        return ($err instanceof GithubApi2Error) ? $err->sdk_code : '';
+        return ($err instanceof WaifuimError) ? $err->sdk_code : '';
     }
 
     public function test_at_least_the_test_feature_is_present(): void
@@ -548,7 +548,7 @@ class FeatureTest extends TestCase
         $this->needs('retry');
         $clock = new FtClock();
         $n = 0;
-        $server = function (GithubApi2Context $ctx, string $_url, array $_fd) use (&$n): array {
+        $server = function (WaifuimContext $ctx, string $_url, array $_fd) use (&$n): array {
             $n++;
             return [null, $ctx->make_error('boom', 'boom')];
         };
@@ -1102,6 +1102,50 @@ class FeatureTest extends TestCase
         $this->assertStringContainsString('cursor=xyz', $rec->calls[0]['url']);
         $this->assertSame('abc', $res['result']->paging['cursor']);
         $this->assertTrue($res['result']->paging['hasMore']);
+    }
+
+    public function test_paging_snake_case_signals_and_ctrl_write_back(): void
+    {
+        $this->needs('paging');
+        $rec = new FtRecorder(function (int $n) {
+            return FtHarness::response(200, 1 === $n
+                ? ['has_more' => true, 'next_cursor' => 'c2']
+                : ['has_more' => false]);
+        });
+        $h = new FtHarness([
+            ['name' => 'paging'],
+        ], $rec->server());
+        $res = $h->op(['op' => 'list', 'path' => '/w', 'ctrl' => ['paging' => []]]);
+        $this->assertTrue($res['result']->paging['hasMore']);
+        $this->assertSame('c2', $res['result']->paging['cursor']);
+        $written = $res['ctx']->ctrl->paging;
+        $this->assertSame('c2', $written['cursor']);
+        $this->assertTrue($written['hasMore']);
+        // Arrays are values here, so the written-back record is passed on by hand.
+        $res = $h->op(['op' => 'list', 'path' => '/w', 'ctrl' => ['paging' => $written]]);
+        $this->assertStringContainsString('cursor=c2', $rec->calls[1]['url']);
+        $this->assertFalse($res['ctx']->ctrl->paging['hasMore']);
+        $this->assertNull($res['ctx']->ctrl->paging['cursor']);
+    }
+
+    public function test_paging_continues_from_written_back_next_page(): void
+    {
+        $this->needs('paging');
+        $rec = new FtRecorder(function (int $n) {
+            return FtHarness::response(200, 1 === $n ? ['next_page' => 2] : [],
+                ['x-page' => (string) $n]);
+        });
+        $h = new FtHarness([
+            ['name' => 'paging'],
+        ], $rec->server());
+        $res = $h->op(['op' => 'list', 'path' => '/w']);
+        $written = $res['ctx']->ctrl->paging;
+        $this->assertEquals(1, $written['page']);
+        $this->assertEquals(2, $written['nextPage']);
+        $this->assertTrue($written['hasMore']);
+        $res = $h->op(['op' => 'list', 'path' => '/w', 'ctrl' => ['paging' => $written]]);
+        $this->assertStringContainsString('page=2', $rec->calls[1]['url']);
+        $this->assertFalse($res['ctx']->ctrl->paging['hasMore']);
     }
 
     public function test_paging_non_list_op_is_not_paged(): void

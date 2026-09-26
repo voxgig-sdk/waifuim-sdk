@@ -1,6 +1,6 @@
 package utility
 
-import "github.com/voxgig-sdk/github-api2-sdk/go/core"
+import "github.com/voxgig-sdk/waifuim-sdk/go/core"
 
 func makeResultUtil(ctx *core.Context) (*core.Result, error) {
 	if ctx.Out["result"] != nil {

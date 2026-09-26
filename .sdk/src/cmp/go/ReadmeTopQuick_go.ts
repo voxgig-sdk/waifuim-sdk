@@ -1,5 +1,5 @@
 
-import { cmp, Content, isAuthActive, envName, entityIdField, entityOps, opRequestShape, goModule } from '@voxgig/sdkgen'
+import { cmp, Content, isAuthActive, envName, entityIdField, entityOps, opRequestShape, goModule , serverVariables} from '@voxgig/sdkgen'
 
 import {
   KIT,
@@ -14,15 +14,27 @@ const ReadmeTopQuick = cmp(function ReadmeTopQuick(props: any) {
   const { target, ctx$: { model } } = props
 
   const entity = getModelPath(model, `main.${KIT}.entity`)
-  // Go module path == repo path on GitHub (org from model.origin).
   const gomodule = goModule(model, target.name)
 
   const exampleEntity = Object.values(entity).find((e: any) => e.active !== false) as any
 
   const authActive = isAuthActive(model)
+  
+  // Server variables (a templated server URL) are REQUIRED at construction
+  // - the SDK refuses rather than request a URL with a literal
+  // {account_id} in it - so a quickstart that omits them is a quickstart
+  // that fails on its first line.
+  const svars = serverVariables(model)
+  const goServerField = 0 === svars.length ? '' :
+    `\n    "server": map[string]any{` +
+    svars.map((v: any) => `\n        "${v.name}": "<${v.name}>",`).join('') +
+    `\n    },`
+
   const ctor = authActive
-    ? `sdk.New${model.const.Name}SDK(map[string]any{\n    "apikey": os.Getenv("${envName(model)}_APIKEY"),\n})`
-    : `sdk.New()`
+    ? `sdk.New${model.const.Name}SDK(map[string]any{\n    "apikey": os.Getenv("${envName(model)}_APIKEY"),${goServerField}\n})`
+    : ('' === goServerField
+      ? `sdk.New()`
+      : `sdk.New${model.const.Name}SDK(map[string]any{${goServerField}\n})`)
 
   Content(`\`\`\`go
 import sdk "${gomodule}"
@@ -33,10 +45,7 @@ client := ${ctor}
 
   if (exampleEntity) {
     const eName = nom(exampleEntity, 'Name')
-    // camelCase Go identifier (never snake_case, never a Go keyword).
     const eVar = goVarName(exampleEntity.name)
-    // ACTIVE ops only — an inactive op generates no method, so an example
-    // calling it would not compile.
     const opnames = entityOps(exampleEntity)
 
     let hasCall = false
@@ -52,9 +61,6 @@ fmt.Println(${eVar}s)
       hasCall = true
     }
 
-    // Find a nested entity for a more interesting example: one with a parent
-    // chain (relations.ancestors), an active load op, and a required non-id
-    // load param to demonstrate (the parent key, e.g. page_id).
     const nestedEntity = Object.values(entity).find((e: any) =>
       e.active !== false &&
       e.relations && e.relations.ancestors && 0 < e.relations.ancestors.length &&
@@ -93,9 +99,7 @@ fmt.Println(${neVar})
       hasCall = true
     }
 
-    // Fallback: APIs with only `load` (no list, no nested) — still show one call.
     if (!hasCall && opnames.includes('load')) {
-      // Every REQUIRED load-match key (id first) — nil when there are none.
       const idF = entityIdField(exampleEntity)
       const loadItems = opRequestShape(exampleEntity, 'load').items
         .filter((it: any) => !it.optional || it.name === idF)

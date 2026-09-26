@@ -1,6 +1,6 @@
-# GithubApi2 SDK utility registration
+# Waifuim SDK utility registration
 
-from projectname_sdk.core.utility_type import GithubApi2Utility
+from projectname_sdk.core.utility_type import WaifuimUtility
 
 from projectname_sdk.utility.clean import clean_util
 from projectname_sdk.utility.done import done_util
@@ -68,4 +68,4 @@ def register_all(u):
     u.transform_response = transform_response_util
 
 
-GithubApi2Utility._registrar = register_all
+WaifuimUtility._registrar = register_all

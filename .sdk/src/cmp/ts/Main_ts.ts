@@ -4,7 +4,10 @@ import * as Path from 'node:path'
 import {
   cmp, each, names, cmap,
   List, File, Content, Copy, Folder, Fragment, Line, FeatureHook,
-  entityClassName, entityCollection, srcFeatureExcludes, stationLibrary,
+  entityClassName, entityCollection, srcFeatureExcludes, pluginExcludes,
+  stationLibrary,
+  targetFeatures,
+  TEST_CONTROL_EXCLUDE
 } from '@voxgig/sdkgen'
 
 
@@ -21,6 +24,8 @@ import {
 
 import { Package } from './Package_ts'
 import { Config } from './Config_ts'
+import { PrepareAuth } from './PrepareAuth_ts'
+import { Schema } from './Schema_ts'
 import { Gitignore } from './Gitignore_ts'
 import { MainEntity } from './MainEntity_ts'
 import { EntityBase } from './EntityBase_ts'
@@ -30,12 +35,18 @@ import { SdkError } from './SdkError_ts'
 
 const Main = cmp(async function Main(props: any) {
 
-  // Needs type: target object
   const { target } = props
   const { model } = props.ctx$
 
   const entity: ModelEntity = getModelPath(model, `main.${KIT}.entity`)
-  const feature = getModelPath(model, `main.${KIT}.feature`)
+  // Gated by the applicability tags, so this target never imports or
+  // registers a feature it has no source for. One rule, one place:
+  // helpers/applicability.
+  const feature = targetFeatures(model, target)
+
+  // Does the secrets feature apply here and is it switched on? Both, since
+  // targetFeatures already dropped it for a target with no sekreto port.
+  const secrets = null != feature.secrets
 
   Package({ target })
 
@@ -45,7 +56,13 @@ const Main = cmp(async function Main(props: any) {
     from: 'tm/' + target.name,
     // Root copies src/feature/<name>/ per ACTIVE feature; keep this blanket
     // copy from restoring one that was switched off after `target add`.
-    exclude: srcFeatureExcludes(model),
+    // A feature's inactive plugins go too - same rule, one level
+    // deeper. See helpers/featureSource.pluginExcludes.
+    exclude: [
+      ...srcFeatureExcludes(model),
+      ...pluginExcludes(model),
+      TEST_CONTROL_EXCLUDE,
+    ],
     replace: {
       ...props.ctx$.stdrep,
     }
@@ -64,8 +81,6 @@ const Main = cmp(async function Main(props: any) {
         return Line(`import { ${cls} } from './entity/${cls}'`)
       })
 
-      // Re-export the generated typed models so consumers can
-      // `import { Advice, AdviceLoadMatch } from '<pkg>'`.
       Line(`export type * from './${model.const.Name}Types'\n`)
 
       Fragment(
@@ -73,6 +88,37 @@ const Main = cmp(async function Main(props: any) {
           from: Path.normalize(__dirname + '/../../../src/cmp/ts/fragment/Main.fragment.ts'),
           replace: {
             ...props.ctx$.stdrep,
+
+            '// #SecretsImport': () => secrets ?
+              Line(`import * as sekreto from './feature/secrets/sekreto'`) : undefined,
+
+            '// #SecretsField': ({ indent }: any) => secrets ?
+              Line({ indent }, '_secrets?: any') : undefined,
+
+            // The LIVE instance, not a clone: sekreto holds provider and
+            // cache state, so a clone would resolve into a copy that
+            // prepareAuth never sees.
+            '// #SecretsAccessor': ({ indent }: any) => secrets ?
+              Content({ indent }, `
+secrets() {
+  return this._secrets && this._secrets.sekreto()
+}
+`) : undefined,
+
+            '// #SecretsResolve': ({ indent }: any) => secrets ?
+              Content({ indent }, `
+if (null != this._secrets) {
+  try {
+    await this._secrets.resolve()
+  }
+  catch (err: any) {
+    return err instanceof Error ? err : new Error(String(err))
+  }
+}
+`) : undefined,
+
+            '// #SecretsExport': ({ indent }: any) => secrets ?
+              Line({ indent }, 'sekreto,') : undefined,
 
             '#BuildFeatures': ({ indent }: any) => {
               List({ item: feature, line: false }, ({ item }: any) =>
@@ -98,7 +144,6 @@ if (fres instanceof Promise) { await fres }
           }
         },
 
-        // Entities
         () => {
           each(entity, (entity: ModelEntity) => {
             const entitySDK = getModelPath(model, `main.${KIT}.entity.${entity.name}`)
@@ -107,13 +152,6 @@ if (fres instanceof Promise) { await fres }
           })
         })
 
-      // Station self-registration (station design §6.2 path 1;
-      // station-declarative-config §11 item 2): emitted ONLY when the model
-      // carries an ACTIVE station feature (installed via
-      // `package add @voxgig/sdkgen-station`). The library package name
-      // comes from the feature model's own `deps.ts` block — the same entry
-      // collectDeps flows into package.json — so the manifest dependency
-      // and the emitted require cannot disagree.
       const stationPkg = stationLibrary(model, target.name)
       if (null != stationPkg) {
         Fragment({
@@ -128,6 +166,11 @@ if (fres instanceof Promise) { await fres }
     })
 
     Config({ target })
+
+    // GENERATED, NOT COPIED. Where the credential goes is a fact about the
+    // API, and tm/ can only hold one answer. See PrepareAuth_ts.
+    PrepareAuth({ target })
+    Schema({ target })
     EntityBase({ target })
     EntityTypes({ target })
 

@@ -1,4 +1,4 @@
--- GithubApi2 SDK Artist entity
+-- Waifuim SDK Artist entity
 
 local vs = require("utility.struct.struct")
 local helpers = require("core.helpers")

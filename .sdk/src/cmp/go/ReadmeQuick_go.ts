@@ -1,5 +1,5 @@
 
-import { cmp, Content, isAuthActive, envName, opRequestShape, entityIdField, entityOps, goModule } from '@voxgig/sdkgen'
+import { cmp, Content, isAuthActive, envName, opRequestShape, entityIdField, entityOps, goModule , serverVariables} from '@voxgig/sdkgen'
 
 import {
   KIT,
@@ -10,39 +10,38 @@ import {
 import { exampleValue, goVarName } from './utility_go'
 
 
-// Emits the go/README.md Quickstart as ONE complete, compilable program.
-// Every entity operation returns `(value, error)` where `value` is the
-// data itself — NOT a `{ok, data, ...}` envelope (only Direct returns
-// that). So examples check `err` and use the value directly. The whole
-// program is compiled by the README snippet test (readme_examples_test.go).
 const ReadmeQuick = cmp(function ReadmeQuick(props: any) {
   const { target, ctx$: { model } } = props
 
   const entity = getModelPath(model, `main.${KIT}.entity`)
-  // Go module path == repo path on GitHub (org from model.origin).
   const gomodule = goModule(model, target.name)
 
   const exampleEntity = Object.values(entity).find((e: any) => e.active !== false) as any
 
   const authActive = isAuthActive(model)
-  const ctor = authActive
-    ? `sdk.New${model.const.Name}SDK(map[string]any{\n        "apikey": os.Getenv("${envName(model)}_APIKEY"),\n    })`
-    : `sdk.New()`
+  
+  // Server variables (a templated server URL) are REQUIRED at construction
+  // - the SDK refuses rather than request a URL with a literal
+  // {account_id} in it - so a quickstart that omits them is a quickstart
+  // that fails on its first line.
+  const svars = serverVariables(model)
+  const goServerField = 0 === svars.length ? '' :
+    `\n    "server": map[string]any{` +
+    svars.map((v: any) => `\n        "${v.name}": "<${v.name}>",`).join('') +
+    `\n    },`
 
-  // Build the body of main() from the operations the example entity
-  // supports. Each op names a fresh value var, so `:=` always declares a
-  // new variable (reusing `err`), and every var is used (printed).
+  const ctor = authActive
+    ? `sdk.New${model.const.Name}SDK(map[string]any{\n        "apikey": os.Getenv("${envName(model)}_APIKEY"),${goServerField}\n    })`
+    : ('' === goServerField
+      ? `sdk.New()`
+      : `sdk.New${model.const.Name}SDK(map[string]any{${goServerField}\n    })`)
+
   const body: string[] = []
   let usesFmt = false
 
   if (exampleEntity) {
     const eName = nom(exampleEntity, 'Name')
-    // camelCase variable name — a `status_embed_config` entity must not bind
-    // a snake_case Go variable, and a `Type`/`Range` entity must not bind a
-    // Go keyword (`type, err := ...` fails `go build`).
     const eLower = goVarName(exampleEntity.name)
-    // ACTIVE ops only — an inactive op generates no method, so an example
-    // calling it would not compile.
     const opnames = entityOps(exampleEntity)
 
     // Model-driven id key: null when the entity has no id-like field (a
@@ -50,12 +49,6 @@ const ReadmeQuick = cmp(function ReadmeQuick(props: any) {
     // update omits the id member.
     const idF = entityIdField(exampleEntity)
 
-    // Model-driven example members for an op body, from the SAME op shape the
-    // request types are built from (opRequestShape), so create/update
-    // reference REAL writable fields, not a hardcoded "name", and every value
-    // is a type-correct Go literal (exampleValue). ids are rendered
-    // separately as the match key for update/remove; a REQUIRED id stays for
-    // create (dropping it makes the payload incomplete).
     const exampleFields = (opname: string): string[] => {
       const items = opRequestShape(exampleEntity, opname).items
         .filter((it: any) => (it.name !== idF && it.name !== 'id') ||
@@ -149,7 +142,6 @@ const ReadmeQuick = cmp(function ReadmeQuick(props: any) {
     }
   }
 
-  // Drop trailing blank lines from the body.
   while (body.length > 0 && body[body.length - 1] === '') {
     body.pop()
   }

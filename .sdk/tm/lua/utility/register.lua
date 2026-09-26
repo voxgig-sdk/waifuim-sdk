@@ -1,4 +1,4 @@
--- GithubApi2 SDK utility registration
+-- Waifuim SDK utility registration
 
 local Utility = require("core.utility_type")
 

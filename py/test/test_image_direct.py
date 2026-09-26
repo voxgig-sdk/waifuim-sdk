@@ -3,9 +3,9 @@
 import json
 import pytest
 
-from githubapi2_sdk.utility.voxgig_struct import voxgig_struct as vs
-from githubapi2_sdk import GithubApi2SDK
-from githubapi2_sdk.core import helpers
+from waifuim_sdk.utility.voxgig_struct import voxgig_struct as vs
+from waifuim_sdk import WaifuimSDK
+from waifuim_sdk.core import helpers
 from test import runner
 
 
@@ -58,16 +58,19 @@ def _image_direct_setup(mockres):
     calls = []
 
     env = runner.env_override({
-        "GITHUB_API2_TEST_IMAGE_ENTID": {},
-        "GITHUB_API2_TEST_LIVE": "FALSE",
+        "WAIFUIM_TEST_IMAGE_ENTID": {},
+        "WAIFUIM_TEST_LIVE": "FALSE",
     })
 
-    live = env.get("GITHUB_API2_TEST_LIVE") == "TRUE"
+    live = env.get("WAIFUIM_TEST_LIVE") == "TRUE"
 
     if live:
-        merged_opts = {
-        }
-        client = GithubApi2SDK(merged_opts)
+        # sdk-test-control.json's test.client.options seeds the live
+        # client; the generated fields below overwrite anything they name.
+        merged_opts = dict(runner.live_client_options())
+        merged_opts.update({
+        })
+        client = WaifuimSDK(merged_opts)
         return {
             "client": client,
             "calls": calls,
@@ -85,7 +88,7 @@ def _image_direct_setup(mockres):
             "body": "mock",
         }, None
 
-    client = GithubApi2SDK({
+    client = WaifuimSDK({
         "base": "http://localhost:8080",
         "system": {
             "fetch": mock_fetch,

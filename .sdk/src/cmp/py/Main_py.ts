@@ -5,6 +5,9 @@ import {
   cmp, each, names, cmap,
   List, File, Content, Copy, Folder, Fragment, Line, FeatureHook,
   entityClassName, entityCollection,
+  pluginExcludes,
+  targetFeatures,
+  TEST_CONTROL_EXCLUDE
 } from '@voxgig/sdkgen'
 
 
@@ -21,6 +24,8 @@ import {
 
 import { Package } from './Package_py'
 import { Config } from './Config_py'
+import { Schema } from './Schema_py'
+import { PrepareAuth } from './PrepareAuth_py'
 import { Gitignore } from './Gitignore_py'
 import { MainEntity } from './MainEntity_py'
 import { EntityTypes } from './EntityTypes_py'
@@ -32,48 +37,37 @@ const Main = cmp(async function Main(props: any) {
   const { model } = props.ctx$
 
   const entity: ModelEntity = getModelPath(model, `main.${KIT}.entity`)
-  const feature = getModelPath(model, `main.${KIT}.feature`)
+  // Gated by the applicability tags, so this target never imports or
+  // registers a feature it has no source for. One rule, one place:
+  // helpers/applicability.
+  const feature = targetFeatures(model, target)
 
-  // The one package directory everything the SDK owns lives in.
+  const secrets = null != (feature as any).secrets
+
   const pkgdir = model.const.Name.toLowerCase() + '_sdk'
 
   Package({ target })
 
   Gitignore({})
 
-  // Root-level statics only (Makefile, LICENSE, test/). The runtime
-  // packages live under tm/py/pkg and are copied INSIDE the SDK package
-  // below.
   Copy({
     from: 'tm/' + target.name,
-    exclude: [/src\//, /pkg\//],
+    exclude: [/src\//, /pkg\//, TEST_CONTROL_EXCLUDE],
     replace: {
       ...props.ctx$.stdrep,
     }
   })
 
-  // Everything the SDK owns lives inside ONE package directory.
-  //
-  // core/, entity/, feature/ and utility/ used to sit at the language root
-  // as top-level importable names. `core`, `entity` and `utility` are all
-  // real PyPI distributions AND common scratch filenames, and Python puts
-  // the working directory first on sys.path — so a single utility.py beside
-  // a notebook shadowed ours and the SDK died on
-  // `No module named 'utility.voxgig_struct'`. Nesting them behind the
-  // model-named package makes that impossible.
-  //
-  // The public import is unchanged: `from <name>_sdk import <Name>SDK`,
-  // because <name>_sdk.py becomes <name>_sdk/__init__.py.
   Folder({ name: pkgdir }, () => {
 
   Copy({
     from: 'tm/' + target.name + '/pkg',
+    exclude: [...pluginExcludes(model)],
     replace: {
       ...props.ctx$.stdrep,
     }
   })
 
-  // Generate main SDK file
   File({ name: '__init__.' + target.ext }, () => {
 
     Fragment(
@@ -81,6 +75,23 @@ const Main = cmp(async function Main(props: any) {
         from: Path.normalize(__dirname + '/../../../src/cmp/py/fragment/Main.fragment.py'),
         replace: {
           ...props.ctx$.stdrep,
+
+
+          '/(?<indent>[ \\t]*)#[ \\t]*#SecretsAccessor[ \\t]*\\n?/':
+            ({ indent }: any) => !secrets ? '' :
+              `${indent}def secrets(self):\n` +
+              `${indent}    _s = getattr(self, "_secrets", None)\n` +
+              `${indent}    return None if _s is None else _s.sekreto()\n\n`,
+
+          // prepare() bypasses the feature hook pipeline, so the PreSpec
+          // hook that resolves the secret for entity ops never runs on
+          // this path and the resolve has to be explicit. It RAISES on a
+          // broken provider - prepare() already raises on prepare_auth
+          // errors, so the direct path's error contract is unchanged.
+          '/(?<indent>[ \\t]*)#[ \\t]*#SecretsResolve[ \\t]*\\n?/':
+            ({ indent }: any) => !secrets ? '' :
+              `${indent}if getattr(self, "_secrets", None) is not None:\n` +
+              `${indent}    self._secrets.resolve()\n\n`,
 
           '#BuildFeatures': ({ indent }: any) => {
             each(feature, (feat: any) => {
@@ -97,7 +108,6 @@ self._utility.feature_hook(self._rootctx, "${name}")
         }
       },
 
-      // Entities - injected at SLOT
       () => {
         each(entity, (entity: ModelEntity) => {
           const entitySDK = getModelPath(model, `main.${KIT}.entity.${entity.name}`)
@@ -126,7 +136,6 @@ if TYPE_CHECKING:
     }
   })
 
-  // Generate the typed-model module (<sdk>_types.py) next to the main SDK file.
   EntityTypes({ target })
 
   // PEP 561 marker so the inline type hints ship to consumers. Emitted at the
@@ -136,12 +145,13 @@ if TYPE_CHECKING:
     Content(``)
   })
 
-  // Generate config module
   Folder({ name: '.' }, () => {
     Config({ target })
+    Schema({ target })
   })
 
-  // Generate feature factory module
+  PrepareAuth({ target })
+
   File({ name: 'features.' + target.ext }, () => {
     Content(`# ${model.const.Name} SDK feature factory
 
@@ -189,11 +199,6 @@ def _has_feature(name):
 `)
   })
 
-  // Generate __init__.py files for sub-packages.
-  // NOTE: deliberately omit __init__.py at the language-root (py/) level —
-  // making py/ a package collides with the third-party `py` module on PyPI
-  // (a single-file `py.py`), which causes pytest to construct test module
-  // paths as `py.test.<file>` and fail with "'py' is not a package".
   Folder({ name: 'core' }, () => {
     File({ name: '__init__.' + target.ext }, () => {
       Content(``)
@@ -204,8 +209,6 @@ def _has_feature(name):
     File({ name: '__init__.' + target.ext }, () => {
       Content(``)
     })
-    // PEP 561 marker inside the type-bearing package so setuptools package-data
-    // ("*" = ["py.typed"]) bundles it into the wheel.
     File({ name: 'py.typed' }, () => {
       Content(``)
     })

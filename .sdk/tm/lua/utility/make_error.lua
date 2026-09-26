@@ -1,9 +1,9 @@
--- GithubApi2 SDK utility: make_error
+-- Waifuim SDK utility: make_error
 
 local Operation = require("core.operation")
 local Result = require("core.result")
 local Control = require("core.control")
-local GithubApi2Error = require("core.error")
+local WaifuimError = require("core.error")
 
 local function make_error_util(ctx, err)
   if ctx == nil then
@@ -42,7 +42,7 @@ local function make_error_util(ctx, err)
     errmsg = tostring(err)
   end
 
-  local msg = "GithubApi2SDK: " .. opname .. ": " .. errmsg
+  local msg = "WaifuimSDK: " .. opname .. ": " .. errmsg
   msg = ctx.utility.clean(ctx, msg)
 
   result.err = nil
@@ -53,7 +53,7 @@ local function make_error_util(ctx, err)
     ctx.ctrl.explain["err"] = { message = msg }
   end
 
-  local sdk_err = GithubApi2Error.new("", msg, ctx)
+  local sdk_err = WaifuimError.new("", msg, ctx)
   sdk_err.result = ctx.utility.clean(ctx, result)
   sdk_err.spec = ctx.utility.clean(ctx, spec)
 
@@ -61,7 +61,7 @@ local function make_error_util(ctx, err)
   -- `err.status` instead of reaching into `err.result`.
   sdk_err.status = result.status or -1
 
-  if type(err) == "table" and getmetatable(err) == GithubApi2Error then
+  if type(err) == "table" and getmetatable(err) == WaifuimError then
     sdk_err.code = err.code
   end
 

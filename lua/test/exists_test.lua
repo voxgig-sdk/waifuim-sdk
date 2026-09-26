@@ -1,8 +1,8 @@
--- GithubApi2 SDK exists test
+-- Waifuim SDK exists test
 
-local sdk = require("github-api2_sdk")
+local sdk = require("waifuim_sdk")
 
-describe("GithubApi2SDK", function()
+describe("WaifuimSDK", function()
   it("should create test SDK", function()
     local testsdk = sdk.test(nil, nil)
     assert.is_not_nil(testsdk)

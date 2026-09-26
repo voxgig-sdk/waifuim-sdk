@@ -1,6 +1,6 @@
-# GithubApi2 SDK base feature
+# Waifuim SDK base feature
 
-class GithubApi2BaseFeature
+class WaifuimBaseFeature
   attr_accessor :version, :name, :active
 
   # Positions this feature when added via the client `extend` option:

@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-// GithubApi2 SDK result
+// Waifuim SDK result
 
-class GithubApi2Result
+class WaifuimResult
 {
     public bool $ok;
     public int $status;

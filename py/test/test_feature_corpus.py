@@ -1,4 +1,4 @@
-# GithubApi2 SDK feature corpus test
+# Waifuim SDK feature corpus test
 #
 # Feature behaviour, driven by the SHARED corpus.
 #
@@ -19,7 +19,7 @@ import re
 
 import pytest
 
-from githubapi2_sdk import GithubApi2SDK
+from waifuim_sdk import WaifuimSDK
 
 _TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -91,14 +91,23 @@ def _scripted_fetcher(res):
 def _client(kase):
     """Build a client the way a caller would.
 
-    GithubApi2SDK(...), not GithubApi2SDK.test(...): the `test` feature is
+    WaifuimSDK(...), not WaifuimSDK.test(...): the `test` feature is
     transport: 'base' and REPLACES the transport, so a client in test mode
     would shadow the script.
     """
-    opts = {"utility": {"fetcher": _scripted_fetcher(kase.get("res"))}}
+    # "test" here is the OPTION, not the `test` FEATURE. It says "this
+    # client is not live", which is what makes a REQUIRED OpenAPI server
+    # variable resolve to a deterministic test-<name> rather than raise at
+    # construction (see make_options). It installs no transport, so the
+    # scripted fetcher still stands - the FEATURE is transport: 'base' and
+    # would shadow it, which is why this cannot just turn the feature on.
+    opts = {
+        "test": {"active": True},
+        "utility": {"fetcher": _scripted_fetcher(kase.get("res"))},
+    }
     if kase.get("feature") is not None:
         opts["feature"] = kase["feature"]
-    return GithubApi2SDK(opts)
+    return WaifuimSDK(opts)
 
 
 def _candidates(client):
@@ -231,6 +240,14 @@ def _subset(actual, expect, path):
         "{}: got {!r}, want {!r}".format(path, actual, expect)
 
 
+# Whether the SDK built the feature at all. The activity record is the
+# wrong probe: most features create theirs on first use, so an idle client
+# has none and every section but the eager ones read as inert.
+def _present(client, name):
+    return any(getattr(f, "name", None) == name
+               for f in (getattr(client, "features", None) or []))
+
+
 def _record(client, name):
     return getattr(client, "_" + name, None)
 
@@ -271,7 +288,9 @@ class TestFeatureCorpus:
         # Probed by ACTIVATING it: the feature defaults to inactive, so an
         # idle client never builds it and its absence says nothing.
         probe = _client({"feature": [{"name": name, "active": True}]})
-        if _record(probe, name) is None:
+        if not _present(probe, name):
+            # The one line every runner prints for an inert section.
+            print("feature.{}: inert (this SDK does not generate the feature)".format(name))
             pytest.skip("this SDK was generated without the {} feature".format(name))
 
         ops = _usable_ops(2)

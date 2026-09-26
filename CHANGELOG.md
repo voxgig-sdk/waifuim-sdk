@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to the generated GithubApi2 SDK are documented here.
+All notable changes to the generated Waifuim SDK are documented here.
 This project follows [Keep a Changelog](https://keepachangelog.com) and
 [Semantic Versioning](https://semver.org).
 
@@ -8,6 +8,6 @@ This project follows [Keep a Changelog](https://keepachangelog.com) and
 
 ## [0.0.1]
 
-- Initial generated release of the GithubApi2 SDK (TypeScript, Python, PHP, Go,
+- Initial generated release of the Waifuim SDK (TypeScript, Python, PHP, Go,
   Ruby, and Lua, plus CLI and MCP surfaces), generated from the upstream
   OpenAPI specification by @voxgig/sdkgen.

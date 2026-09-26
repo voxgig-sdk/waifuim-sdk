@@ -1,4 +1,4 @@
-module github.com/voxgig-sdk/github-api2-sdk/go
+module github.com/voxgig-sdk/waifuim-sdk/go
 
 go 1.21
 

@@ -1,8 +1,8 @@
-# GithubApi2 SDK test runner
+# Waifuim SDK test runner
 
 require 'json'
 
-module GithubApi2TestRunner
+module WaifuimTestRunner
   @env = {}
 
   def self.load_env_local
@@ -101,6 +101,31 @@ module GithubApi2TestRunner
     [false, nil]
   end
 
+  # Extra SDK options every LIVE client is constructed with, read from
+  # sdk-test-control.json `test.client.options`.
+  #
+  # The generated live client knows two things: the base URL (from the spec)
+  # and the credential (from the environment). Everything else about how a
+  # particular API wants to be talked to - which features to switch on, and
+  # with what settings - is a property of THAT API, known to the project and
+  # to nothing in the toolchain.
+  #
+  # Merged UNDER the generated fields, so the suite's own base/apikey/server
+  # values win: this ADDS to the live client, it does not redirect it.
+  #
+  # Reserved fields are stripped HERE rather than at each merge site: the
+  # generated hash only names a field when the model calls for one, so a
+  # "base" in this block would face no competing value and would silently
+  # redirect the whole suite - credential included - to another host.
+  LIVE_RESERVED = %w[base prefix suffix server apikey secret].freeze
+
+  def self.live_client_options
+    ctrl = load_test_control
+    opts = ctrl.dig('test', 'client', 'options')
+    return {} unless opts.is_a?(Hash)
+    opts.reject { |k, _v| LIVE_RESERVED.include?(k) }
+  end
+
   # Per-test live pacing delay (ms); default 500.
   def self.live_delay_ms
     ctrl = load_test_control
@@ -111,6 +136,6 @@ module GithubApi2TestRunner
 end
 
 # Module-level aliases for test convenience.
-Runner = GithubApi2TestRunner
-Helpers = GithubApi2Helpers
+Runner = WaifuimTestRunner
+Helpers = WaifuimHelpers
 Vs = VoxgigStruct

@@ -1,4 +1,4 @@
--- GithubApi2 SDK utility: make_context
+-- Waifuim SDK utility: make_context
 
 local Context = require("core.context")
 

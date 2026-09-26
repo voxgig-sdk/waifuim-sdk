@@ -1,11 +1,11 @@
 
 import { inspect } from 'node:util'
 
-import { GithubApi2EntityBase } from '../GithubApi2EntityBase'
+import { WaifuimEntityBase } from '../WaifuimEntityBase'
 
 import type {
-  GithubApi2SDK,
-} from '../GithubApi2SDK'
+  WaifuimSDK,
+} from '../WaifuimSDK'
 
 
 import type {
@@ -17,12 +17,11 @@ import type {
 import type {
   Artist,
   ArtistListMatch,
-} from '../GithubApi2Types'
+} from '../WaifuimTypes'
 
-// TODO: needs Entity superclass
-class ArtistEntity extends GithubApi2EntityBase<Artist> {
+class ArtistEntity extends WaifuimEntityBase<Artist> {
 
-  constructor(client: GithubApi2SDK, entopts: any) {
+  constructor(client: WaifuimSDK, entopts: any) {
     super(client, entopts)
     this.name = 'artist'
     this.name_ = 'artist'

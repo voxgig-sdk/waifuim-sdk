@@ -1,4 +1,4 @@
--- GithubApi2 SDK utility: make_request
+-- Waifuim SDK utility: make_request
 
 local Response = require("core.response")
 local Result = require("core.result")

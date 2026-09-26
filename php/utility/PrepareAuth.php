@@ -1,15 +1,15 @@
 <?php
 declare(strict_types=1);
 
-// GithubApi2 SDK utility: prepare_auth
+// Waifuim SDK utility: prepare_auth
 
-class GithubApi2PrepareAuth
+class WaifuimPrepareAuth
 {
     private const HEADER_AUTH = 'authorization';
     private const OPTION_APIKEY = 'apikey';
     private const NOT_FOUND = '__NOTFOUND__';
 
-    public static function call(GithubApi2Context $ctx): array
+    public static function call(WaifuimContext $ctx): array
     {
         $spec = $ctx->spec;
         if (!$spec) {

@@ -3,7 +3,7 @@ package sdktest
 import (
 	"testing"
 
-	sdk "github.com/voxgig-sdk/github-api2-sdk/go"
+	sdk "github.com/voxgig-sdk/waifuim-sdk/go"
 )
 
 func TestCustomUtility(t *testing.T) {
@@ -78,15 +78,6 @@ func TestCustomUtility(t *testing.T) {
 		}
 	})
 
-	// The half the subtest above cannot see. Those keys are ALIASES - `auth`,
-	// `body`, `spec` - and no utility member has those names, so landing in
-	// Custom is the right outcome for them and the assertion passes whether or
-	// not overriding works at all.
-	//
-	// A key that DOES name a member must replace it. That is the documented
-	// contract, it is what ts does, and it was silently absent here: every
-	// entry went to Custom, which nothing reads, so `utility: {"fetcher": ...}`
-	// did nothing while ts honoured it.
 	t.Run("a real utility member is replaced, not shelved", func(t *testing.T) {
 		reached := 0
 		scripted := func(ctx *sdk.Context, fullurl string, fetchdef map[string]any) (any, error) {
@@ -99,17 +90,8 @@ func TestCustomUtility(t *testing.T) {
 			}, nil
 		}
 
-		// NewGithubApi2SDK, not TestSDK. The `test` feature is
-		// transport: 'base' - it REPLACES the transport by design - so a client
-		// in test mode would shadow the scripted fetcher and this would assert
-		// nothing.
-		//
-		// `scripted` is passed AS DECLARED, with no conversion to
-		// sdk.FetcherFunc. That is how a caller writes it, and it is the case
-		// that was broken: a plain function literal in a map[string]any has the
-		// unnamed signature, so an override that only accepted the named type
-		// shelved it in Custom. Converting here would have hidden that.
-		client := sdk.NewGithubApi2SDK(map[string]any{
+		client := sdk.NewWaifuimSDK(map[string]any{
+			"test":    map[string]any{"active": true},
 			"utility": map[string]any{"fetcher": scripted},
 		})
 
@@ -132,13 +114,14 @@ func TestCustomUtility(t *testing.T) {
 		}
 	})
 
-	// The other spelling of the same value. A caller who names the exported
-	// type gets a value whose dynamic type is core.FetcherFunc, which asserts
-	// to the named type and NOT to the unnamed signature - the mirror image of
-	// the subtest above, and broken by any fix that swaps one for the other.
 	t.Run("a converted fetcher is accepted too", func(t *testing.T) {
 		reached := 0
-		client := sdk.NewGithubApi2SDK(map[string]any{
+		// "test" is the OPTION, not the `test` FEATURE: it says "this client
+		// is not live", so a REQUIRED OpenAPI server variable resolves to a
+		// deterministic test-<name> instead of panicking at construction. It
+		// installs no transport, so the override under test still stands.
+		client := sdk.NewWaifuimSDK(map[string]any{
+			"test": map[string]any{"active": true},
 			"utility": map[string]any{
 				"fetcher": sdk.FetcherFunc(func(
 					ctx *sdk.Context, fullurl string, fetchdef map[string]any,
@@ -168,10 +151,13 @@ func TestCustomUtility(t *testing.T) {
 		}
 	})
 
-	// An unknown key must still be attached rather than dropped, so the two
-	// halves cannot be satisfied by a switch that also swallows extras.
 	t.Run("an unknown key is still attached", func(t *testing.T) {
-		client := sdk.NewGithubApi2SDK(map[string]any{
+		// "test" is the OPTION, not the `test` FEATURE: it says "this client
+		// is not live", so a REQUIRED OpenAPI server variable resolves to a
+		// deterministic test-<name> instead of panicking at construction. It
+		// installs no transport, so the override under test still stands.
+		client := sdk.NewWaifuimSDK(map[string]any{
+			"test": map[string]any{"active": true},
 			"utility": map[string]any{
 				"notAUtilityMember": func() string { return "EXTRA" },
 			},

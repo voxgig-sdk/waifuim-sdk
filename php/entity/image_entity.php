@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-// GithubApi2 SDK Image entity
+// Waifuim SDK Image entity
 
 require_once __DIR__ . '/../utility/struct/Struct.php';
 require_once __DIR__ . '/../core/Helpers.php';
@@ -83,7 +83,7 @@ class ImageEntity
     public function data_set($args): void
     {
         if ($args) {
-            $this->_data = GithubApi2Helpers::to_map(Struct::clone($args)) ?? [];
+            $this->_data = WaifuimHelpers::to_map(Struct::clone($args)) ?? [];
             ($this->_utility->feature_hook)($this->_entctx, "SetData");
         }
     }
@@ -103,7 +103,7 @@ class ImageEntity
     public function match_set($args): void
     {
         if ($args) {
-            $this->_match = GithubApi2Helpers::to_map(Struct::clone($args)) ?? [];
+            $this->_match = WaifuimHelpers::to_map(Struct::clone($args)) ?? [];
             ($this->_utility->feature_hook)($this->_entctx, "SetMatch");
         }
     }
@@ -251,7 +251,7 @@ class ImageEntity
      *   of Image fields) as an assoc-array; ImageListMatch names the shape.
      * @param mixed $ctrl Optional per-call control overrides.
      * @return Image[]|array A list of Image items as assoc-arrays at
-     *   the SDK boundary; throws GithubApi2Error on failure (item-5 convention).
+     *   the SDK boundary; throws WaifuimError on failure (item-5 convention).
      */
     public function list(?array $reqmatch = null, $ctrl = null): mixed
     {

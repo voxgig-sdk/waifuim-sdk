@@ -1,27 +1,27 @@
 <?php
 declare(strict_types=1);
 
-// GithubApi2 SDK utility: make_error
+// Waifuim SDK utility: make_error
 
 require_once __DIR__ . '/../core/Operation.php';
 require_once __DIR__ . '/../core/Result.php';
 require_once __DIR__ . '/../core/Error.php';
 
-class GithubApi2MakeError
+class WaifuimMakeError
 {
-    public static function call(?GithubApi2Context $ctx, mixed $err): mixed
+    public static function call(?WaifuimContext $ctx, mixed $err): mixed
     {
         if ($ctx === null) {
             require_once __DIR__ . '/../core/Context.php';
-            $ctx = new GithubApi2Context([], null);
+            $ctx = new WaifuimContext([], null);
         }
-        $op = $ctx->op ?? new GithubApi2Operation([]);
+        $op = $ctx->op ?? new WaifuimOperation([]);
         $opname = $op->name;
         if ($opname === '' || $opname === '_') {
             $opname = 'unknown operation';
         }
 
-        $result = $ctx->result ?? new GithubApi2Result([]);
+        $result = $ctx->result ?? new WaifuimResult([]);
         $result->ok = false;
 
         if ($err === null) {
@@ -31,8 +31,8 @@ class GithubApi2MakeError
             $err = $ctx->make_error('unknown', 'unknown error');
         }
 
-        $errmsg = ($err instanceof GithubApi2Error) ? $err->msg : (string)$err;
-        $msg = "GithubApi2SDK: {$opname}: {$errmsg}";
+        $errmsg = ($err instanceof WaifuimError) ? $err->msg : (string)$err;
+        $msg = "WaifuimSDK: {$opname}: {$errmsg}";
         $msg = ($ctx->utility->clean)($ctx, $msg);
 
         $result->err = null;
@@ -42,7 +42,7 @@ class GithubApi2MakeError
             $ctx->ctrl->explain['err'] = ['message' => $msg];
         }
 
-        $sdk_err = new GithubApi2Error('', $msg, $ctx);
+        $sdk_err = new WaifuimError('', $msg, $ctx);
         $sdk_err->result = ($ctx->utility->clean)($ctx, $result);
         $sdk_err->spec = ($ctx->utility->clean)($ctx, $spec);
 
@@ -50,7 +50,7 @@ class GithubApi2MakeError
         // on `err->status` / `err->notFound()` rather than reaching into
         // `err->result`.
         $sdk_err->status = null === $result->status ? -1 : (int)$result->status;
-        if ($err instanceof GithubApi2Error) {
+        if ($err instanceof WaifuimError) {
             $sdk_err->sdk_code = $err->sdk_code;
         }
 

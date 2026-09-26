@@ -1,4 +1,4 @@
--- GithubApi2 SDK base feature
+-- Waifuim SDK base feature
 
 local BaseFeature = {}
 BaseFeature.__index = BaseFeature

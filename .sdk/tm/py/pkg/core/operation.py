@@ -1,10 +1,10 @@
-# GithubApi2 SDK operation
+# Waifuim SDK operation
 
 from __future__ import annotations
 from projectname_sdk.utility.voxgig_struct import voxgig_struct as vs
 
 
-class GithubApi2Operation:
+class WaifuimOperation:
     def __init__(self, opmap=None):
         if opmap is None:
             opmap = {}

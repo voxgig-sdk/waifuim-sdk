@@ -1,4 +1,4 @@
--- GithubApi2 SDK utility: transform_response
+-- Waifuim SDK utility: transform_response
 
 local vs = require("utility.struct.struct")
 local helpers = require("core.helpers")

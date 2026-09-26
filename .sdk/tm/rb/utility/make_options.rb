@@ -1,6 +1,7 @@
-# GithubApi2 SDK utility: make_options
+# Waifuim SDK utility: make_options
 require_relative 'struct/voxgig_struct'
-module GithubApi2Utilities
+require_relative '../schema'
+module WaifuimUtilities
   MakeOptions = ->(ctx) {
     options = ctx.options || {}
 
@@ -40,8 +41,22 @@ module GithubApi2Utilities
       end
     end
 
+    # `auth: nil` is the documented way to disable auth outright, and
+    # prepare_auth honours it before it ever reads the apikey. It cannot
+    # survive validate: depending on the struct port a stored null is either
+    # REPLACED by the optspec default - transmitting the credential the
+    # caller withheld - or REJECTED outright. Withhold the key for validate,
+    # then put the nil back. Same fix as ts/js/go make_options.
+    #
+    # Suppliedness cannot be recovered after validate, hence here, and it
+    # must tell an ABSENT auth from a present nil: only the latter is a
+    # suppression.
+    authsuppressed = options.is_a?(Hash) && options.key?('auth') && options['auth'].nil?
+
     opts = VoxgigStruct.clone(options)
     opts = {} unless opts.is_a?(Hash)
+
+    opts.delete('auth') if authsuppressed
 
     # Feature add-order. options["feature"] may be given as an ordered ARRAY of
     # { "name" => ..., "active" => ..., ... } entries (the array position IS the
@@ -66,38 +81,20 @@ module GithubApi2Utilities
     config = ctx.config || {}
     cfgopts = config["options"].is_a?(Hash) ? config["options"] : {}
 
-    optspec = {
-      "apikey" => "",
-      "base" => "http://localhost:8000",
-      "secret" => "",
-      "prefix" => "",
-      "suffix" => "",
-      # `basic` and `secret`: HTTP Basic Auth needs a second credential and
-      # a flag to say the pair is Basic rather than a single bearer token.
-      "auth" => { "prefix" => "", "basic" => false },
-      "headers" => { "`$CHILD`" => "`$STRING`" },
-      "allow" => {
-        "method" => "GET,PUT,POST,PATCH,DELETE,OPTIONS",
-        "op" => "create,update,load,list,remove,command,direct,graphql",
-      },
-      "entity" => { "`$CHILD`" => { "`$OPEN`" => true, "active" => false, "alias" => {} } },
-      "feature" => { "`$CHILD`" => { "`$OPEN`" => true, "active" => false } },
-      "utility" => {},
-      # Feature INSTANCES supplied at construction (the station adopt
-      # path): consumed by the constructor's feature_add loop, so they are
-      # class instances, not data — `$ANY` accepts them verbatim. Without
-      # this entry the seam is dead: the constructor reads
-      # options["extend"], but validate rejected the key.
-      "extend" => "`$ANY`",
-      "system" => {},
-      "test" => { "active" => false, "entity" => { "`$OPEN`" => true } },
-      "clean" => { "keys" => "key,token,id" },
-      # Server-variable values for a templated base URL (OpenAPI server
-      # variables): {name} placeholders in "base" are substituted from this
-      # map at construction. Spec defaults arrive via the generated config;
-      # user values override them.
-      "server" => { "`$CHILD`" => "" },
-    }
+    # THE OPTION SPEC IS GENERATED, NOT WRITTEN HERE.
+    #
+    # `WaifuimSchema::OPTSPEC` is built from the model:
+    # `main.kit.optspec` for the standard options, plus one entry per
+    # feature this target carries, taken from that feature's own
+    # `config.options` / `config.optspec`. Editing this file to add an
+    # option would put it back where it was — one of twenty
+    # hand-maintained copies of a schema nothing cross-checked — so add
+    # it to the model instead and every ported target validates it.
+    #
+    # NOT MUTATED. It is a frozen module constant shared by every client
+    # this process constructs; anything defaulted below is applied to the
+    # RESULT, never to the spec.
+    optspec = WaifuimSchema::OPTSPEC
 
     sys_fetch = VoxgigStruct.getpath(opts, "system.fetch")
 
@@ -108,6 +105,9 @@ module GithubApi2Utilities
     merged = VoxgigStruct.merge([{}, VoxgigStruct.clone(cfgopts), opts])
     validated = VoxgigStruct.validate(merged, optspec)
     opts = validated.is_a?(Hash) ? validated : {}
+
+    # Restore the suppression the optspec default would otherwise erase.
+    opts['auth'] = nil if authsuppressed
 
     # Resolve a templated base URL (e.g. https://{tenant_id}.hanko.io).
     # Every placeholder must resolve to a non-empty value: from

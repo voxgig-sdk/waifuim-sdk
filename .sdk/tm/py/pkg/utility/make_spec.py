@@ -1,8 +1,8 @@
-# GithubApi2 SDK utility: make_spec
+# Waifuim SDK utility: make_spec
 
 from __future__ import annotations
 from projectname_sdk.utility.voxgig_struct import voxgig_struct as vs
-from projectname_sdk.core.spec import GithubApi2Spec
+from projectname_sdk.core.spec import WaifuimSpec
 from projectname_sdk.utility.graphql import GRAPHQL_CONTENT_TYPE
 
 
@@ -40,7 +40,7 @@ def make_spec_util(ctx):
         if isinstance(pt, list):
             parts = pt
 
-    ctx.spec = GithubApi2Spec({
+    ctx.spec = WaifuimSpec({
         "base": base,
         "prefix": prefix,
         "parts": parts,

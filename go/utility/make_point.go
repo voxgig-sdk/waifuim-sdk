@@ -3,9 +3,9 @@ package utility
 import (
 	"strings"
 
-	vs "github.com/voxgig-sdk/github-api2-sdk/go/utility/struct"
+	vs "github.com/voxgig-sdk/waifuim-sdk/go/utility/struct"
 
-	"github.com/voxgig-sdk/github-api2-sdk/go/core"
+	"github.com/voxgig-sdk/waifuim-sdk/go/core"
 )
 
 // How many path segments a point has.
@@ -28,11 +28,6 @@ func terminalParam(point map[string]any) bool {
 	return strings.HasPrefix(last, "{")
 }
 
-// The entity's OWN route among an op's points: a terminal parameter first,
-// then the fewest path segments. Ties keep the earlier point, so the model's
-// sorted-key order decides. The same rule runs at generation time, in
-// helpers/opShape.ts — a template ships standalone, so both sides must move
-// together.
 func ownPoint(points []map[string]any) map[string]any {
 	best := points[0]
 	for _, cand := range points {
@@ -66,7 +61,7 @@ func makePointUtil(ctx *core.Context) (map[string]any, error) {
 	op := ctx.Op
 	options := ctx.Options
 
-	allowOp, _ := vs.GetPath([]any{"allow", "op"}, options).(string)
+	allowOp, _ := vs.GetPath(options, []any{"allow", "op"}).(string)
 	if !strings.Contains(allowOp, op.Name) {
 		return nil, ctx.MakeError("point_op_allow",
 			"Operation \""+op.Name+
@@ -134,12 +129,6 @@ func makePointUtil(ctx *core.Context) (map[string]any, error) {
 		// so nothing matches — fall back to the entity's own route rather
 		// than whichever point came last.
 		if !matched {
-			// A request naming an action reaches here only because that
-			// action's own point failed its exist test, so it is unbuildable
-			// whatever we pick. Refuse it BEFORE choosing a fallback: the
-			// guard below compares the chosen point's $action and would wave
-			// the request through whenever the fallback lands on the action
-			// point itself.
 			if reqselector != nil && vs.GetProp(reqselector, "$action") != nil {
 				return nil, ctx.MakeError("point_action_invalid",
 					"Operation \""+op.Name+

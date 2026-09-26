@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-// GithubApi2 SDK helpers
+// Waifuim SDK helpers
 
-class GithubApi2Helpers
+class WaifuimHelpers
 {
     public static function to_map(mixed $v): ?array
     {

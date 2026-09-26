@@ -1,4 +1,4 @@
-# GithubApi2 SDK Image entity
+# Waifuim SDK Image entity
 
 require_relative '../utility/struct/voxgig_struct'
 require_relative '../core/helpers'
@@ -53,7 +53,7 @@ class ImageEntity
 
   def data_set(args)
     if args
-      @_data = GithubApi2Helpers.to_map(VoxgigStruct.clone(args)) || {}
+      @_data = WaifuimHelpers.to_map(VoxgigStruct.clone(args)) || {}
       @_utility.feature_hook.call(@_entctx, "SetData")
     end
   end
@@ -66,7 +66,7 @@ class ImageEntity
 
   def match_set(args)
     if args
-      @_match = GithubApi2Helpers.to_map(VoxgigStruct.clone(args)) || {}
+      @_match = WaifuimHelpers.to_map(VoxgigStruct.clone(args)) || {}
       @_utility.feature_hook.call(@_entctx, "SetMatch")
     end
   end
@@ -178,7 +178,7 @@ class ImageEntity
   # @param reqmatch [ImageListMatch, Hash, nil] match filter (any subset of
   #   Image fields); defaults to nil, treated as an empty match that lists all.
   # @param ctrl [Object, nil] optional per-call control
-  # @return [Array<Image>, Array] the matching Image items; raises GithubApi2Error on failure
+  # @return [Array<Image>, Array] the matching Image items; raises WaifuimError on failure
   def list(reqmatch = nil, ctrl = nil)
     utility = @_utility
     ctx = utility.make_context.call({

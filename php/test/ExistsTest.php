@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-// GithubApi2 SDK exists test
+// Waifuim SDK exists test
 
-require_once __DIR__ . '/../githubapi2_sdk.php';
+require_once __DIR__ . '/../waifuim_sdk.php';
 
 use PHPUnit\Framework\TestCase;
 
@@ -11,7 +11,7 @@ class ExistsTest extends TestCase
 {
     public function test_create_test_sdk(): void
     {
-        $testsdk = GithubApi2SDK::test(null, null);
+        $testsdk = WaifuimSDK::test(null, null);
         $this->assertNotNull($testsdk);
     }
 }

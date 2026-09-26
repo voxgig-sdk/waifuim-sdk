@@ -1,4 +1,4 @@
-# GithubApi2 SDK utility registration
+# Waifuim SDK utility registration
 require_relative '../core/utility_type'
 require_relative 'clean'
 require_relative 'done'
@@ -31,36 +31,36 @@ require_relative 'result_headers'
 require_relative 'transform_request'
 require_relative 'transform_response'
 
-GithubApi2Utility.registrar = ->(u) {
-  u.clean = GithubApi2Utilities::Clean
-  u.done = GithubApi2Utilities::Done
-  u.make_error = GithubApi2Utilities::MakeError
-  u.feature_add = GithubApi2Utilities::FeatureAdd
-  u.feature_hook = GithubApi2Utilities::FeatureHook
-  u.feature_init = GithubApi2Utilities::FeatureInit
-  u.fetcher = GithubApi2Utilities::Fetcher
-  u.make_fetch_def = GithubApi2Utilities::MakeFetchDef
-  u.make_context = GithubApi2Utilities::MakeContext
-  u.make_options = GithubApi2Utilities::MakeOptions
-  u.make_request = GithubApi2Utilities::MakeRequest
-  u.make_response = GithubApi2Utilities::MakeResponse
-  u.make_result = GithubApi2Utilities::MakeResult
-  u.make_point = GithubApi2Utilities::MakePoint
-  u.make_spec = GithubApi2Utilities::MakeSpec
-  u.make_url = GithubApi2Utilities::MakeUrl
-  u.param = GithubApi2Utilities::Param
-  u.prepare_auth = GithubApi2Utilities::PrepareAuth
-  u.prepare_body = GithubApi2Utilities::PrepareBody
-  u.prepare_headers = GithubApi2Utilities::PrepareHeaders
-  u.prepare_method = GithubApi2Utilities::PrepareMethod
-  u.prepare_params = GithubApi2Utilities::PrepareParams
-  u.prepare_path = GithubApi2Utilities::PreparePath
-  u.prepare_query = GithubApi2Utilities::PrepareQuery
-  u.graphql_body = GithubApi2Utilities::GraphqlBody
-  u.graphql_errors = GithubApi2Utilities::GraphqlErrors
-  u.result_basic = GithubApi2Utilities::ResultBasic
-  u.result_body = GithubApi2Utilities::ResultBody
-  u.result_headers = GithubApi2Utilities::ResultHeaders
-  u.transform_request = GithubApi2Utilities::TransformRequest
-  u.transform_response = GithubApi2Utilities::TransformResponse
+WaifuimUtility.registrar = ->(u) {
+  u.clean = WaifuimUtilities::Clean
+  u.done = WaifuimUtilities::Done
+  u.make_error = WaifuimUtilities::MakeError
+  u.feature_add = WaifuimUtilities::FeatureAdd
+  u.feature_hook = WaifuimUtilities::FeatureHook
+  u.feature_init = WaifuimUtilities::FeatureInit
+  u.fetcher = WaifuimUtilities::Fetcher
+  u.make_fetch_def = WaifuimUtilities::MakeFetchDef
+  u.make_context = WaifuimUtilities::MakeContext
+  u.make_options = WaifuimUtilities::MakeOptions
+  u.make_request = WaifuimUtilities::MakeRequest
+  u.make_response = WaifuimUtilities::MakeResponse
+  u.make_result = WaifuimUtilities::MakeResult
+  u.make_point = WaifuimUtilities::MakePoint
+  u.make_spec = WaifuimUtilities::MakeSpec
+  u.make_url = WaifuimUtilities::MakeUrl
+  u.param = WaifuimUtilities::Param
+  u.prepare_auth = WaifuimUtilities::PrepareAuth
+  u.prepare_body = WaifuimUtilities::PrepareBody
+  u.prepare_headers = WaifuimUtilities::PrepareHeaders
+  u.prepare_method = WaifuimUtilities::PrepareMethod
+  u.prepare_params = WaifuimUtilities::PrepareParams
+  u.prepare_path = WaifuimUtilities::PreparePath
+  u.prepare_query = WaifuimUtilities::PrepareQuery
+  u.graphql_body = WaifuimUtilities::GraphqlBody
+  u.graphql_errors = WaifuimUtilities::GraphqlErrors
+  u.result_basic = WaifuimUtilities::ResultBasic
+  u.result_body = WaifuimUtilities::ResultBody
+  u.result_headers = WaifuimUtilities::ResultHeaders
+  u.transform_request = WaifuimUtilities::TransformRequest
+  u.transform_response = WaifuimUtilities::TransformResponse
 }

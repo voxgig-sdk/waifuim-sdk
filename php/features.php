@@ -1,23 +1,32 @@
 <?php
 declare(strict_types=1);
 
-// GithubApi2 SDK feature factory
+// Waifuim SDK feature factory
 
 require_once __DIR__ . '/feature/BaseFeature.php';
+require_once __DIR__ . '/feature/RatelimitFeature.php';
+require_once __DIR__ . '/feature/RetryFeature.php';
 require_once __DIR__ . '/feature/TestFeature.php';
+require_once __DIR__ . '/feature/TimeoutFeature.php';
 
 
-class GithubApi2Features
+class WaifuimFeatures
 {
     public static function make_feature(string $name)
     {
         switch ($name) {
             case "base":
-                return new GithubApi2BaseFeature();
+                return new WaifuimBaseFeature();
+            case "ratelimit":
+                return new WaifuimRatelimitFeature();
+            case "retry":
+                return new WaifuimRetryFeature();
             case "test":
-                return new GithubApi2TestFeature();
+                return new WaifuimTestFeature();
+            case "timeout":
+                return new WaifuimTimeoutFeature();
             default:
-                return new GithubApi2BaseFeature();
+                return new WaifuimBaseFeature();
         }
     }
 
@@ -31,7 +40,10 @@ class GithubApi2Features
     {
         switch ($name) {
             case "base":
+            case "ratelimit":
+            case "retry":
             case "test":
+            case "timeout":
                 return true;
             default:
                 return false;

@@ -1,12 +1,12 @@
 package utility
 
 import (
-	vs "github.com/voxgig-sdk/github-api2-sdk/go/utility/struct"
+	vs "github.com/voxgig-sdk/waifuim-sdk/go/utility/struct"
 
-	"github.com/voxgig-sdk/github-api2-sdk/go/core"
+	"github.com/voxgig-sdk/waifuim-sdk/go/core"
 )
 
-const headerAuth = "authorization"
+const credName = "authorization"
 const optionApikey = "apikey"
 const notFound = "__NOTFOUND__"
 
@@ -22,7 +22,7 @@ func prepareAuthUtil(ctx *core.Context) (*core.Spec, error) {
 
 	// Public APIs that need no auth omit the options.auth block entirely.
 	if options["auth"] == nil {
-		delete(headers, headerAuth)
+		delete(headers, credName)
 		return spec, nil
 	}
 
@@ -37,10 +37,10 @@ func prepareAuthUtil(ctx *core.Context) (*core.Spec, error) {
 	}
 
 	if skip {
-		delete(headers, headerAuth)
+		delete(headers, credName)
 	} else {
 		authPrefix := ""
-		if ap := vs.GetPath([]any{"auth", "prefix"}, options); ap != nil {
+		if ap := vs.GetPath(options, []any{"auth", "prefix"}); ap != nil {
 			authPrefix, _ = ap.(string)
 		}
 		apikeyVal := ""
@@ -49,9 +49,9 @@ func prepareAuthUtil(ctx *core.Context) (*core.Spec, error) {
 		}
 		// Empty prefix (raw apiKey credential) must not add a leading space.
 		if authPrefix == "" {
-			headers[headerAuth] = apikeyVal
+			headers[credName] = apikeyVal
 		} else {
-			headers[headerAuth] = authPrefix + " " + apikeyVal
+			headers[credName] = authPrefix + " " + apikeyVal
 		}
 	}
 

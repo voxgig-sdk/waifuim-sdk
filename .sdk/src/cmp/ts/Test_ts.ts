@@ -3,11 +3,11 @@ import type {
   ModelEntity
 } from '@voxgig/apidef'
 
-import { cmp, each, Folder, entityCollection } from '@voxgig/sdkgen'
+import { cmp, each, Folder, entityCollection,
+  TestControl } from '@voxgig/sdkgen'
 
 
-// import { Quick } from './Quick_ts'
-// import { TestMain } from './TestMain_ts'
+import { TestLive } from './TestLive_ts'
 import { TestDirect } from './TestDirect_ts'
 import { TestEntity } from './TestEntity_ts'
 import { ReadmeExampleTest } from './ReadmeExampleTest_ts'
@@ -19,8 +19,10 @@ const Test = cmp(function Test(props: any) {
   const { target } = props
 
   Folder({ name: 'test' }, () => {
-    // Quick({ target })
-    // TestMain({ target })
+
+    // Write-once: a project's edited control file survives regeneration.
+    TestControl({ target, dir: 'test' })
+    TestLive({ target })
 
     ReadmeExampleTest({ target })
     ReadmeExamplesTest({ target })

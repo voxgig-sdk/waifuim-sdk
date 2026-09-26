@@ -1,7 +1,7 @@
-// Typed models for the GithubApi2 SDK.
+// Typed models for the Waifuim SDK.
 //
-// GENERATED from the API model: main.kit.entity.<e>.fields[] and per-op
-// params (op.<name>.points[].args.params[]). Field/param types come from the
+// GENERATED from the API model: main.kit.entity.<e>.fields{} and per-op
+// params (op.<name>.points[].g.params[]). Field/param types come from the
 // canonical type sentinels via @voxgig/sdkgen canonToType (source of truth:
 // @voxgig/apidef VALID_CANON). Do not edit by hand.
 package entity
@@ -9,14 +9,11 @@ package entity
 import (
 	"encoding/json"
 
-	"github.com/voxgig-sdk/github-api2-sdk/go/core"
+	"github.com/voxgig-sdk/waifuim-sdk/go/core"
 )
 
 // Artist is the typed data model for the artist entity.
 type Artist struct {
-	Id *string `json:"id,omitempty"`
-	Name *string `json:"name,omitempty"`
-	Url *string `json:"url,omitempty"`
 }
 
 // ArtistListMatch is the typed request payload for Artist.ListTyped.
@@ -27,13 +24,6 @@ type ArtistListMatch struct {
 
 // Image is the typed data model for the image entity.
 type Image struct {
-	Artist *map[string]any `json:"artist,omitempty"`
-	Category *string `json:"category,omitempty"`
-	Height *int `json:"height,omitempty"`
-	Id *string `json:"id,omitempty"`
-	Thumbnail *string `json:"thumbnail,omitempty"`
-	Url *string `json:"url,omitempty"`
-	Width *int `json:"width,omitempty"`
 }
 
 // ImageListMatch is the typed request payload for Image.ListTyped.

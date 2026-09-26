@@ -1,5 +1,5 @@
 {
-  "name": "@voxgig-sdk/github-api2",
+  "name": "@voxgig-sdk/waifuim-sdk",
   "version": "0.0.1",
   "description": "Unofficial generated TypeScript SDK for the Waifu public API. Not affiliated with or endorsed by the upstream API provider.",
   "keywords": [
@@ -8,22 +8,23 @@
     "generated-sdk",
     "openapi",
     "api-client",
-    "github-api2"
+    "waifuim"
   ],
-  "homepage": "https://github.com/voxgig-sdk/github-api2-sdk#readme",
+  "homepage": "https://github.com/voxgig-sdk/waifuim-sdk#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/voxgig-sdk/github-api2-sdk.git"
+    "url": "git+https://github.com/voxgig-sdk/waifuim-sdk.git"
   },
   "bugs": {
-    "url": "https://github.com/voxgig-sdk/github-api2-sdk/issues"
+    "url": "https://github.com/voxgig-sdk/waifuim-sdk/issues"
   },
-  "main": "dist/GithubApi2SDK.js",
+  "main": "dist/WaifuimSDK.js",
   "type": "commonjs",
-  "types": "dist/GithubApi2SDK.d.ts",
+  "types": "dist/WaifuimSDK.d.ts",
   "files": [
     "dist",
-    "src"
+    "src",
+    "README.md"
   ],
   "scripts": {
     "pretest": "npm run build",
@@ -46,7 +47,6 @@
   "peerDependencies": {},
   "devDependencies": {
     "@types/node": "^25.6.0",
-    "dotenv": "^17.4.2",
     "typescript": "^5.9.3"
   }
 }

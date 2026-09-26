@@ -1,6 +1,6 @@
 <?php
 
-// GithubApi2 SDK feature corpus test
+// Waifuim SDK feature corpus test
 //
 // Feature behaviour, driven by the SHARED corpus.
 //
@@ -17,7 +17,7 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../githubapi2_sdk.php';
+require_once __DIR__ . '/../waifuim_sdk.php';
 
 use PHPUnit\Framework\TestCase;
 
@@ -91,11 +91,20 @@ class FeatureCorpusTest extends TestCase
      */
     private static function buildClient(array $kase)
     {
-        $opts = ['utility' => ['fetcher' => self::scriptedFetcher($kase['res'] ?? null)]];
+        // 'test' here is the OPTION, not the `test` FEATURE. It says "this
+        // client is not live", which is what makes a REQUIRED OpenAPI server
+        // variable resolve to a deterministic test-<name> rather than throw
+        // at construction (see makeOptions). It installs no transport, so the
+        // scripted fetcher still stands - the FEATURE is transport: 'base'
+        // and would shadow it.
+        $opts = [
+            'test' => ['active' => true],
+            'utility' => ['fetcher' => self::scriptedFetcher($kase['res'] ?? null)],
+        ];
         if (isset($kase['feature'])) {
             $opts['feature'] = $kase['feature'];
         }
-        return new GithubApi2SDK($opts);
+        return new WaifuimSDK($opts);
     }
 
     /**
@@ -258,6 +267,19 @@ class FeatureCorpusTest extends TestCase
         $this->assertSame($expect, $actual, $path);
     }
 
+    // Whether the SDK built the feature at all. The activity record is the
+    // wrong probe: most features create theirs on first use, so an idle
+    // client has none and every section but the eager ones read as inert.
+    private static function present($client, string $name): bool
+    {
+        foreach ($client->features ?? [] as $f) {
+            if (($f->name ?? null) === $name) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private static function record($client, string $name)
     {
         $prop = '_' . $name;
@@ -317,7 +339,10 @@ class FeatureCorpusTest extends TestCase
             // Probed by ACTIVATING it: the feature defaults to inactive, so an
             // idle client never builds it and its absence says nothing.
             $probe = self::buildClient(['feature' => [['name' => $name, 'active' => true]]]);
-            if (null === self::record($probe, $name)) {
+            if (!self::present($probe, $name)) {
+                // The one line every runner prints for an inert section.
+                fwrite(STDERR, sprintf(
+                    "feature.%s: inert (this SDK does not generate the feature)\n", $name));
                 continue;
             }
 

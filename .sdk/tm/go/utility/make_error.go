@@ -33,7 +33,7 @@ func makeErrorUtil(ctx *core.Context, err error) (any, error) {
 	}
 
 	errmsg := err.Error()
-	msg := "GithubApi2SDK: " + opname + ": " + errmsg
+	msg := "WaifuimSDK: " + opname + ": " + errmsg
 	msg = cleanUtil(ctx, msg).(string)
 
 	result.Err = nil
@@ -46,16 +46,16 @@ func makeErrorUtil(ctx *core.Context, err error) (any, error) {
 		}
 	}
 
-	sdkErr := &core.GithubApi2Error{
-		IsGithubApi2Error: true,
-		Sdk:              "GithubApi2",
+	sdkErr := &core.WaifuimError{
+		IsWaifuimError: true,
+		Sdk:              "Waifuim",
 		Code:             "",
 		Msg:              msg,
 		Ctx:              ctx,
 		Result:           cleanUtil(ctx, result),
 		Spec:             cleanUtil(ctx, spec),
 	}
-	if se, ok := err.(*core.GithubApi2Error); ok {
+	if se, ok := err.(*core.WaifuimError); ok {
 		sdkErr.Code = se.Code
 	}
 

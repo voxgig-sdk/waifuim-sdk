@@ -1,4 +1,4 @@
-# GithubApi2 SDK utility: make_point
+# Waifuim SDK utility: make_point
 
 from __future__ import annotations
 from projectname_sdk.utility.voxgig_struct import voxgig_struct as vs

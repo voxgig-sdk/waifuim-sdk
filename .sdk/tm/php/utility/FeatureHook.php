@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-// GithubApi2 SDK utility: feature_hook
+// Waifuim SDK utility: feature_hook
 
-class GithubApi2FeatureHook
+class WaifuimFeatureHook
 {
-    public static function call(GithubApi2Context $ctx, string $name): void
+    public static function call(WaifuimContext $ctx, string $name): void
     {
         if (!$ctx->client) {
             return;

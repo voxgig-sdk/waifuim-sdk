@@ -1,5 +1,5 @@
-# GithubApi2 SDK utility: make_result
-module GithubApi2Utilities
+# Waifuim SDK utility: make_result
+module WaifuimUtilities
   MakeResult = ->(ctx) {
     return ctx.out["result"], nil if ctx.out["result"]
     utility = ctx.utility

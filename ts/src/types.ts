@@ -1,5 +1,5 @@
 
-import { GithubApi2EntityBase } from './GithubApi2EntityBase'
+import { WaifuimEntityBase } from './WaifuimEntityBase'
 
 import { Point } from './Point'
 import { Context } from './Context'
@@ -47,7 +47,7 @@ export {
   Response,
   Result,
   Spec,
-  GithubApi2EntityBase,
+  WaifuimEntityBase,
 }
 
 

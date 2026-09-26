@@ -1,4 +1,4 @@
--- GithubApi2 SDK utility: result_headers
+-- Waifuim SDK utility: result_headers
 
 local function result_headers_util(ctx)
   local response = ctx.response

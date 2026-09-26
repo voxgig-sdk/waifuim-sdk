@@ -1,4 +1,4 @@
-# GithubApi2 SDK feature test harness
+# Waifuim SDK feature test harness
 #
 # Offline feature-test harness for the generated SDK.
 #
@@ -14,12 +14,12 @@ from __future__ import annotations
 
 from urllib.parse import quote
 
-from githubapi2_sdk.config import shared_config
-from githubapi2_sdk.features import _make_feature
-from githubapi2_sdk.core.control import GithubApi2Control
-from githubapi2_sdk.core.error import GithubApi2Error
-from githubapi2_sdk.core.result import GithubApi2Result
-from githubapi2_sdk.core.spec import GithubApi2Spec
+from waifuim_sdk.config import shared_config
+from waifuim_sdk.features import _make_feature
+from waifuim_sdk.core.control import WaifuimControl
+from waifuim_sdk.core.error import WaifuimError
+from waifuim_sdk.core.result import WaifuimResult
+from waifuim_sdk.core.spec import WaifuimSpec
 
 
 # True when this SDK was generated with the named feature.
@@ -161,7 +161,7 @@ class _Ctx:
         self.client = client
         self.utility = utility
         self.out = {}
-        self.ctrl = ctrl if ctrl is not None else GithubApi2Control()
+        self.ctrl = ctrl if ctrl is not None else WaifuimControl()
         self.meta = {}
         self.op = op
         self.entity = entity
@@ -177,7 +177,7 @@ class _Ctx:
         self.shared = {}
 
     def make_error(self, code, msg):
-        return GithubApi2Error(code, msg, self)
+        return WaifuimError(code, msg, self)
 
 
 # Construct a fake client wired with the given features (in init order) and
@@ -227,7 +227,7 @@ class Harness:
                 method(ctx)
 
     def _populate_result(self, ctx, response, fetch_err):
-        result = GithubApi2Result({})
+        result = WaifuimResult({})
         ctx.result = result
 
         if fetch_err is not None:
@@ -272,7 +272,7 @@ class Harness:
         ctx = _Ctx(self.client, self.utility,
                    op=_Op(opname, entity),
                    entity=_Entity(entity),
-                   ctrl=GithubApi2Control(ctrl or {}))
+                   ctrl=WaifuimControl(ctrl or {}))
 
         self.feature_hook(ctx, "PostConstructEntity")
 
@@ -288,7 +288,7 @@ class Harness:
                 merged = dict(self.headers)
                 for key, val in (headers or {}).items():
                     merged[key] = val
-                spec = GithubApi2Spec({
+                spec = WaifuimSpec({
                     "method": method,
                     "base": self.base,
                     "path": path if path is not None else "/" + entity,

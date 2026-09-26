@@ -1,16 +1,16 @@
 {
-  "name": "voxgig-sdk/github-api2",
+  "name": "voxgig-sdk/waifuim-sdk",
   "description": "Unofficial generated PHP SDK for the Waifu public API. Not affiliated with or endorsed by the upstream API provider.",
   "type": "library",
-  "keywords": ["voxgig", "sdk", "generated-sdk", "openapi", "api-client", "github-api2"],
-  "homepage": "https://github.com/voxgig-sdk/github-api2-sdk",
+  "keywords": ["voxgig", "sdk", "generated-sdk", "openapi", "api-client", "waifuim"],
+  "homepage": "https://github.com/voxgig-sdk/waifuim-sdk",
   "license": "MIT",
   "authors": [
     { "name": "Voxgig", "homepage": "https://voxgig.com" }
   ],
   "support": {
-    "issues": "https://github.com/voxgig-sdk/github-api2-sdk/issues",
-    "source": "https://github.com/voxgig-sdk/github-api2-sdk"
+    "issues": "https://github.com/voxgig-sdk/waifuim-sdk/issues",
+    "source": "https://github.com/voxgig-sdk/waifuim-sdk"
   },
   "minimum-stability": "stable",
   "require": {
@@ -20,8 +20,8 @@
     "phpunit/phpunit": "^11.0"
   },
   "autoload": {
-    "files": ["githubapi2_sdk.php"],
-    "classmap": ["core/", "entity/", "feature/", "types/", "utility/", "config.php", "features.php"]
+    "files": ["waifuim_sdk.php"],
+    "classmap": ["core/", "entity/", "feature/", "types/", "utility/", "config.php", "schema.php", "features.php"]
   },
   "autoload-dev": {
     "classmap": ["test/"]

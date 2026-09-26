@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-// GithubApi2 SDK utility type
+// Waifuim SDK utility type
 
-class GithubApi2Utility
+class WaifuimUtility
 {
     public mixed $clean = null;
     public mixed $done = null;
@@ -53,9 +53,9 @@ class GithubApi2Utility
         }
     }
 
-    public static function copy(GithubApi2Utility $src): GithubApi2Utility
+    public static function copy(WaifuimUtility $src): WaifuimUtility
     {
-        $u = new GithubApi2Utility();
+        $u = new WaifuimUtility();
         $u->clean = $src->clean;
         $u->done = $src->done;
         $u->make_error = $src->make_error;

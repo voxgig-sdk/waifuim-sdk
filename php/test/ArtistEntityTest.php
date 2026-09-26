@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 // Artist entity test
 
-require_once __DIR__ . '/../githubapi2_sdk.php';
+require_once __DIR__ . '/../waifuim_sdk.php';
 require_once __DIR__ . '/Runner.php';
 
 use PHPUnit\Framework\TestCase;
@@ -13,7 +13,7 @@ class ArtistEntityTest extends TestCase
 {
     public function test_create_instance(): void
     {
-        $testsdk = GithubApi2SDK::test(null, null);
+        $testsdk = WaifuimSDK::test(null, null);
         $ent = $testsdk->Artist(null);
         $this->assertNotNull($ent);
     }
@@ -35,14 +35,14 @@ class ArtistEntityTest extends TestCase
         ];
 
         // Fallback: streaming inactive -> yields the materialised list items.
-        $base = GithubApi2SDK::test($seed, null);
+        $base = WaifuimSDK::test($seed, null);
         $seen = iterator_to_array($base->Artist(null)->stream("list", null, null), false);
         $this->assertCount(3, $seen);
 
         // Inbound: streaming active -> yields each item from the feature.
-        $cfg = GithubApi2Config::shared_config();
+        $cfg = WaifuimConfig::shared_config();
         if (isset($cfg["feature"]) && is_array($cfg["feature"]) && isset($cfg["feature"]["streaming"])) {
-            $sdk = GithubApi2SDK::test($seed, ["feature" => ["streaming" => ["active" => true]]]);
+            $sdk = WaifuimSDK::test($seed, ["feature" => ["streaming" => ["active" => true]]]);
             $got = [];
             foreach ($sdk->Artist(null)->stream("list", null, null) as $item) {
                 if (is_array($item) && array_is_list($item)) {
@@ -72,7 +72,7 @@ class ArtistEntityTest extends TestCase
         // The basic flow consumes synthetic IDs from the fixture. In live mode
         // without an *_ENTID env override, those IDs hit the live API and 4xx.
         if (!empty($setup["synthetic_only"])) {
-            $this->markTestSkipped("live entity test uses synthetic IDs from fixture — set GITHUB_API2_TEST_ARTIST_ENTID JSON to run live");
+            $this->markTestSkipped("live entity test uses synthetic IDs from fixture — set WAIFUIM_TEST_ARTIST_ENTID JSON to run live");
             return;
         }
         $client = $setup["client"];
@@ -106,7 +106,7 @@ function artist_basic_setup($extra)
     $options = [];
     $options["entity"] = $entity_data["existing"];
 
-    $client = GithubApi2SDK::test($options, $extra);
+    $client = WaifuimSDK::test($options, $extra);
 
     // Generate idmap.
     $idmap = [];
@@ -117,37 +117,52 @@ function artist_basic_setup($extra)
     // Detect ENTID env override before envOverride consumes it. When live
     // mode is on without a real override, the basic test runs against synthetic
     // IDs from the fixture and 4xx's. Surface this so the test can skip.
-    $entid_env_raw = getenv("GITHUB_API2_TEST_ARTIST_ENTID");
+    $entid_env_raw = getenv("WAIFUIM_TEST_ARTIST_ENTID");
     $idmap_overridden = $entid_env_raw !== false && str_starts_with(trim($entid_env_raw), "{");
 
     $env = Runner::env_override([
-        "GITHUB_API2_TEST_ARTIST_ENTID" => $idmap,
-        "GITHUB_API2_TEST_LIVE" => "FALSE",
-        "GITHUB_API2_TEST_EXPLAIN" => "FALSE",
+        "WAIFUIM_TEST_ARTIST_ENTID" => $idmap,
+        "WAIFUIM_TEST_LIVE" => "FALSE",
+        "WAIFUIM_TEST_EXPLAIN" => "FALSE",
     ]);
 
     $idmap_resolved = Helpers::to_map(
-        $env["GITHUB_API2_TEST_ARTIST_ENTID"]);
+        $env["WAIFUIM_TEST_ARTIST_ENTID"]);
     if ($idmap_resolved === null) {
         $idmap_resolved = Helpers::to_map($idmap);
     }
 
-    if ($env["GITHUB_API2_TEST_LIVE"] === "TRUE") {
+    if ($env["WAIFUIM_TEST_LIVE"] === "TRUE") {
         $merged_opts = Vs::merge([
+            // FIRST, so the generated fields below win: sdk-test-control.json's
+            // test.client.options adds to the live client, it does not redirect it.
+            Runner::live_client_options(),
             [
             ],
-            $extra ?? [],
+            // ismap, not a plain "?? []" default: an empty PHP array is a
+            // LIST, and a non-map later entry REPLACES the accumulated map in
+            // merge - so the no-extras call discarded live_client_options()
+            // and the apikey/server map above it.
+            Vs::ismap($extra) ? $extra : new \stdClass(),
         ]);
-        $client = new GithubApi2SDK(Helpers::to_map($merged_opts));
+        // "?? []" because merge legitimately answers with a stdClass when every
+        // contributing entry is an EMPTY map - an SDK with no apikey and no
+        // server variables generates an empty middle entry, so that is the
+        // common case, not the edge one. to_map returns null for a non-array by
+        // design, and the constructor takes a non-nullable array, so without the
+        // fallback every such SDK died on "must be of type array, null given"
+        // the moment live mode was switched on. Offline mode never reaches this
+        // branch, which is why the offline suite stayed green.
+        $client = new WaifuimSDK(Helpers::to_map($merged_opts) ?? []);
     }
 
-    $live = $env["GITHUB_API2_TEST_LIVE"] === "TRUE";
+    $live = $env["WAIFUIM_TEST_LIVE"] === "TRUE";
     return [
         "client" => $client,
         "data" => $entity_data,
         "idmap" => $idmap_resolved,
         "env" => $env,
-        "explain" => $env["GITHUB_API2_TEST_EXPLAIN"] === "TRUE",
+        "explain" => $env["WAIFUIM_TEST_EXPLAIN"] === "TRUE",
         "live" => $live,
         "synthetic_only" => $live && !$idmap_overridden,
         "now" => (int)(microtime(true) * 1000),

@@ -9,13 +9,16 @@ import {
   Line,
   cmp,
   each,
-  clean,
   configDefinition,
   configReprSetting,
+  goModule,
   isAuthActive,
   isConfigData,
+  resolveAuthIn,
+  resolveAuthName,
   resolveAuthPrefix,
   serverVariables,
+  targetFeatures,
 } from '@voxgig/sdkgen'
 
 
@@ -29,6 +32,7 @@ import {
 
 import {
   formatGoMap,
+  formatGoString,
   goFeatureName,
 } from './utility_go'
 
@@ -40,52 +44,71 @@ const Config = cmp(async function Config(props: any) {
   const model: Model = ctx$.model
 
   const entity = getModelPath(model, `main.${KIT}.entity`)
-  const feature = getModelPath(model, `main.${KIT}.feature`)
+  const feature = targetFeatures(model, target)
 
   const headers = getModelPath(model, `main.${KIT}.config.headers`) || {}
 
   const authActive = isAuthActive(model)
-  // config.auth.prefix override -> spec-derived info.security.prefix -> 'Bearer'
   const authPrefix = resolveAuthPrefix(model)
 
   let baseUrl = ''
   try { baseUrl = getModelPath(model, `main.${KIT}.info.servers.0.url`) } catch (_e) { }
 
-  // Templated server URL: emit the spec's server-variable defaults so the
-  // runtime can substitute {name} placeholders in base (see make_options).
   const svars = serverVariables(model)
   const serverBlock = 0 === svars.length ? '' :
     '\t\t\t"server": map[string]any{\n' +
     svars.map((v: any) => `\t\t\t\t${JSON.stringify(v.name)}: ${JSON.stringify(v.dflt)},\n`).join('') +
     '\t\t\t},\n'
 
+  // `in` and `name` travel with the prefix now. They were resolved by
+  // apidef all along and dropped here, so an apiKey-in-query API got an
+  // Authorization header it does not read. Emitted only when they differ
+  // from the defaults, so a header/Authorization SDK is byte-identical to
+  // what it generated before.
+  const authIn = resolveAuthIn(model)
+  const authName = resolveAuthName(model)
   const authBlock = authActive
     ? `			"auth": map[string]any{
-				"prefix": "${authPrefix}",
+				"prefix": "${authPrefix}",${'header' === authIn ? '' : `
+				"in": "${authIn}",`}${'Authorization' === authName ? '' : `
+				"name": "${authName}",`}
 			},\n`
     : ''
 
-  // The same config as an OBJECT, built by the shared helper so this target's
-  // literal and the data that replaces it above the threshold are the same
-  // config by construction. The JSON is what the threshold is measured on -
-  // emitted source size varies by language, the model does not.
   const { def: configDef, json: configJson } = configDefinition(model, target.name)
   const asData = isConfigData(configJson, configReprSetting(model))
 
+  const gomodule = goModule(model, target.name)
+  const pluginPaths = new Set<string>()
+  const featurePlugins: Record<string, string[]> = {}
+
+  each(feature, (f: any) => {
+    const syms: string[] = []
+    each(f.plugin, (plugin: any) => {
+      if (false === plugin.active || null == plugin.active) return
+      for (const [sym, one] of Object.entries(plugin.def?.go || {})) {
+        pluginPaths.add(String(one).replace(/\/[^/]+$/, ''))
+        syms.push(sym)
+      }
+    })
+    if (0 < syms.length) {
+      featurePlugins[f.name] = syms.sort()
+    }
+  })
+
+  const pluginImportLines = Array.from(pluginPaths).sort()
+    .map((p: string) => `\t"${gomodule}/${p}"\n`).join('')
+  const pluginImportBlock = '' === pluginImportLines ? '' :
+    '\n' + pluginImportLines
+
+  const featurePluginsBlock =
+    'var featurePlugins = map[string][]any{\n' +
+    Object.keys(featurePlugins).sort().map((fname: string) =>
+      `\t"${fname}": {${featurePlugins[fname].join(', ')}},\n`).join('') +
+    '}\n'
+
   File({ name: 'config.' + target.ext }, () => {
 
-    // ABOVE THE THRESHOLD: emit the model as DATA.
-    //
-    // A composite literal makes the compiler walk every node of the model;
-    // a string constant is one token. On the real gitlab model that is 30.8 s
-    // and 2.49 GB of compiler memory versus 0.34 s and 0.06 GB, and a binary
-    // 2.1x smaller. MakeConfig still returns the same map, so nothing
-    // downstream can tell which representation it got.
-    //
-    // JSON.stringify output is a valid Go interpreted string literal: JSON
-    // escapes are a subset of Go's, and Go source is UTF-8 so non-ASCII needs
-    // no escaping. A raw (backtick) literal could NOT be used - the model
-    // contains backticks in values like `$STRING`.
     if (asData) {
       Content(`package core
 
@@ -93,11 +116,11 @@ import (
 	"encoding/json"
 	"math"
 	"sync"
-)
+${pluginImportBlock})
 
 // The API model, emitted as data rather than as a composite literal: see
 // sdkgen rung L1. Parsed by MakeConfig, and parsed once by SharedConfig.
-const configJSON = ${JSON.stringify(configJson)}
+const configJSON = ${formatGoString(configJson)}
 
 // json.Unmarshal decodes EVERY JSON number as float64, but the literal
 // representation emits an integer token as an untyped constant that lands in
@@ -150,7 +173,7 @@ func MakeConfig() map[string]any {
 
 import (
 	"sync"
-)
+${pluginImportBlock})
 
 `)
 
@@ -196,18 +219,22 @@ ${serverBlock}${authBlock}			"headers": ${formatGoMap(headers, 3)},
     Content(`			},
 		},
 		"entity": ${formatGoMap(
-      Object.values(entity).reduce((a: any, n: any) => (a[n.name] = clean({
-        fields: n.fields,
-        name: n.name,
-        op: n.op,
-        relations: n.relations,
-      }, true), a), {}), 2)},
+configDef.entity, 2)},
 	}
 }
 `)
     }
 
     Content(`
+// The plugin definitions the model selected per feature, as []any so a
+// feature package can consume them without core naming its types. Empty
+// when no active feature declares active plugin groups for this target.
+${featurePluginsBlock}
+// FeaturePlugins is the definitions list for one feature's chain.
+func FeaturePlugins(name string) []any {
+	return featurePlugins[name]
+}
+
 var (
 	sharedConfigOnce sync.Once
 	sharedConfigVal  map[string]any
@@ -231,8 +258,6 @@ func makeFeature(name string) Feature {
 `)
 
     each(feature, (f: any) => {
-      // MUST match Main_go.ts, which DECLARES these identifiers in registry.go
-      // and the root init(); see goFeatureName.
       const fname = goFeatureName(f)
       if (f.name !== 'base') {
         Content(`	case "${f.name}":

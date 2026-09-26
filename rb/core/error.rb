@@ -1,12 +1,12 @@
-# GithubApi2 SDK error
+# Waifuim SDK error
 
-class GithubApi2Error < StandardError
+class WaifuimError < StandardError
   attr_accessor :is_sdk_error, :sdk, :code, :msg, :ctx, :result, :spec, :status
 
   def initialize(code = "", msg = "", ctx = nil)
     super(msg)
     @is_sdk_error = true
-    @sdk = "GithubApi2"
+    @sdk = "Waifuim"
     @code = code
     @msg = msg
     @ctx = ctx

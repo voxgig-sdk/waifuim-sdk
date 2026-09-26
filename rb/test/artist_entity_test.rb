@@ -2,12 +2,12 @@
 
 require "minitest/autorun"
 require "json"
-require_relative "../GithubApi2_sdk"
+require_relative "../Waifuim_sdk"
 require_relative "runner"
 
 class ArtistEntityTest < Minitest::Test
   def test_create_instance
-    testsdk = GithubApi2SDK.test(nil, nil)
+    testsdk = WaifuimSDK.test(nil, nil)
     ent = testsdk.Artist(nil)
     assert !ent.nil?
   end
@@ -28,14 +28,14 @@ class ArtistEntityTest < Minitest::Test
     }
 
     # Fallback: streaming inactive -> yields the materialised list items.
-    base = GithubApi2SDK.test(seed, nil)
+    base = WaifuimSDK.test(seed, nil)
     seen = base.Artist(nil).stream("list", nil, nil).to_a
     assert_equal 3, seen.length
 
     # Inbound: streaming active -> yields each item from the feature.
-    cfg = GithubApi2Config.shared_config
+    cfg = WaifuimConfig.shared_config
     if cfg["feature"].is_a?(Hash) && cfg["feature"].key?("streaming")
-      sdk = GithubApi2SDK.test(seed, { "feature" => { "streaming" => { "active" => true } } })
+      sdk = WaifuimSDK.test(seed, { "feature" => { "streaming" => { "active" => true } } })
       got = []
       sdk.Artist(nil).stream("list", nil, nil).each do |item|
         if item.is_a?(Array)
@@ -62,7 +62,7 @@ class ArtistEntityTest < Minitest::Test
     # The basic flow consumes synthetic IDs from the fixture. In live mode
     # without an *_ENTID env override, those IDs hit the live API and 4xx.
     if setup[:synthetic_only]
-      skip "live entity test uses synthetic IDs from fixture — set GITHUB_API2_TEST_ARTIST_ENTID JSON to run live"
+      skip "live entity test uses synthetic IDs from fixture — set WAIFUIM_TEST_ARTIST_ENTID JSON to run live"
       return
     end
     client = setup[:client]
@@ -95,7 +95,7 @@ def artist_basic_setup(extra)
   options = {}
   options["entity"] = entity_data["existing"]
 
-  client = GithubApi2SDK.test(options, extra)
+  client = WaifuimSDK.test(options, extra)
 
   # Generate idmap via transform.
   idmap = Vs.transform(
@@ -111,37 +111,40 @@ def artist_basic_setup(extra)
   # Detect ENTID env override before envOverride consumes it. When live
   # mode is on without a real override, the basic test runs against synthetic
   # IDs from the fixture and 4xx's. Surface this so the test can skip.
-  entid_env_raw = ENV["GITHUB_API2_TEST_ARTIST_ENTID"]
+  entid_env_raw = ENV["WAIFUIM_TEST_ARTIST_ENTID"]
   idmap_overridden = !entid_env_raw.nil? && entid_env_raw.strip.start_with?("{")
 
   env = Runner.env_override({
-    "GITHUB_API2_TEST_ARTIST_ENTID" => idmap,
-    "GITHUB_API2_TEST_LIVE" => "FALSE",
-    "GITHUB_API2_TEST_EXPLAIN" => "FALSE",
+    "WAIFUIM_TEST_ARTIST_ENTID" => idmap,
+    "WAIFUIM_TEST_LIVE" => "FALSE",
+    "WAIFUIM_TEST_EXPLAIN" => "FALSE",
   })
 
   idmap_resolved = Helpers.to_map(
-    env["GITHUB_API2_TEST_ARTIST_ENTID"])
+    env["WAIFUIM_TEST_ARTIST_ENTID"])
   if idmap_resolved.nil?
     idmap_resolved = Helpers.to_map(idmap)
   end
 
-  if env["GITHUB_API2_TEST_LIVE"] == "TRUE"
+  if env["WAIFUIM_TEST_LIVE"] == "TRUE"
     merged_opts = Vs.merge([
+      # FIRST, so the generated fields below win: sdk-test-control.json's
+      # test.client.options adds to the live client, it does not redirect it.
+      Runner.live_client_options,
       {
       },
       extra || {},
     ])
-    client = GithubApi2SDK.new(Helpers.to_map(merged_opts))
+    client = WaifuimSDK.new(Helpers.to_map(merged_opts))
   end
 
-  live = env["GITHUB_API2_TEST_LIVE"] == "TRUE"
+  live = env["WAIFUIM_TEST_LIVE"] == "TRUE"
   {
     client: client,
     data: entity_data,
     idmap: idmap_resolved,
     env: env,
-    explain: env["GITHUB_API2_TEST_EXPLAIN"] == "TRUE",
+    explain: env["WAIFUIM_TEST_EXPLAIN"] == "TRUE",
     live: live,
     synthetic_only: live && !idmap_overridden,
     now: (Time.now.to_f * 1000).to_i,

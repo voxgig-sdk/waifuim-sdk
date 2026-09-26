@@ -3,8 +3,9 @@ package core
 import (
 	"math/rand"
 	"strconv"
+	"sync"
 
-	vs "github.com/voxgig-sdk/github-api2-sdk/go/utility/struct"
+	vs "github.com/voxgig-sdk/waifuim-sdk/go/utility/struct"
 )
 
 type Context struct {
@@ -12,7 +13,7 @@ type Context struct {
 	Out      map[string]any
 	Ctrl     *Control
 	Meta     map[string]any
-	Client   *GithubApi2SDK
+	Client   *WaifuimSDK
 	Utility  *Utility
 	Op       *Operation
 	Point    map[string]any
@@ -20,6 +21,7 @@ type Context struct {
 	Entopts  map[string]any
 	Options  map[string]any
 	Opmap    map[string]*Operation
+	Opmu     *sync.Mutex
 	Response *Response
 	Result   *Result
 	Spec     *Spec
@@ -39,7 +41,7 @@ func NewContext(ctxmap map[string]any, basectx *Context) *Context {
 
 	// Client
 	if c := getCtxProp(ctxmap, "client"); c != nil {
-		if sdk, ok := c.(*GithubApi2SDK); ok {
+		if sdk, ok := c.(*WaifuimSDK); ok {
 			ctx.Client = sdk
 		}
 	}
@@ -84,7 +86,7 @@ func NewContext(ctxmap map[string]any, basectx *Context) *Context {
 		} else if ctrl, ok := c.(*Control); ok {
 			ctx.Ctrl = ctrl
 		}
-	} else if basectx != nil && basectx.Ctrl != nil {
+	} else if basectx != nil && basectx.Ctrl != nil && getCtxProp(ctxmap, "opname") == nil {
 		ctx.Ctrl = basectx.Ctrl
 	}
 
@@ -156,9 +158,13 @@ func NewContext(ctxmap map[string]any, basectx *Context) *Context {
 	}
 	if ctx.Opmap == nil && basectx != nil {
 		ctx.Opmap = basectx.Opmap
+		ctx.Opmu = basectx.Opmu
 	}
 	if ctx.Opmap == nil {
 		ctx.Opmap = map[string]*Operation{}
+	}
+	if ctx.Opmu == nil {
+		ctx.Opmu = &sync.Mutex{}
 	}
 
 	// Data
@@ -227,17 +233,16 @@ func NewContext(ctxmap map[string]any, basectx *Context) *Context {
 }
 
 func (ctx *Context) resolveOp(opname string) *Operation {
-	// Cache key is `<entity>:<opname>` so two entities with the same op
-	// (e.g. both have a "list") get distinct cached Operations. Keying on
-	// opname alone caused the first-resolved entity's points to be served
-	// to every subsequent entity's call.
 	entname := ""
 	if ctx.Entity != nil {
 		entname = ctx.Entity.GetName()
 	}
 	cacheKey := entname + ":" + opname
 
-	if op, ok := ctx.Opmap[cacheKey]; ok && op != nil {
+	ctx.Opmu.Lock()
+	cached, cachedok := ctx.Opmap[cacheKey]
+	ctx.Opmu.Unlock()
+	if op, ok := cached, cachedok; ok && op != nil {
 		return op
 	}
 
@@ -245,7 +250,7 @@ func (ctx *Context) resolveOp(opname string) *Operation {
 		return NewOperation(map[string]any{})
 	}
 
-	opcfg := vs.GetPath([]any{"entity", entname, "op", opname}, ctx.Config)
+	opcfg := vs.GetPath(ctx.Config, []any{"entity", entname, "op", opname})
 
 	input := "match"
 	if opname == "update" || opname == "create" {
@@ -267,16 +272,18 @@ func (ctx *Context) resolveOp(opname string) *Operation {
 	}
 
 	op := NewOperation(map[string]any{
-		"entity":  entname,
-		"name":    opname,
-		"input":   input,
+		"entity": entname,
+		"name":   opname,
+		"input":  input,
 		"points": targets,
 	})
 
+	ctx.Opmu.Lock()
 	ctx.Opmap[cacheKey] = op
+	ctx.Opmu.Unlock()
 	return op
 }
 
-func (ctx *Context) MakeError(code string, msg string) *GithubApi2Error {
-	return NewGithubApi2Error(code, msg, ctx)
+func (ctx *Context) MakeError(code string, msg string) *WaifuimError {
+	return NewWaifuimError(code, msg, ctx)
 }

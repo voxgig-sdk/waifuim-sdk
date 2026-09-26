@@ -1,14 +1,14 @@
 <?php
 declare(strict_types=1);
 
-// GithubApi2 SDK utility: make_request
+// Waifuim SDK utility: make_request
 
 require_once __DIR__ . '/../core/Response.php';
 require_once __DIR__ . '/../core/Result.php';
 
-class GithubApi2MakeRequest
+class WaifuimMakeRequest
 {
-    public static function call(GithubApi2Context $ctx): array
+    public static function call(WaifuimContext $ctx): array
     {
         if (isset($ctx->out['request'])) {
             return [$ctx->out['request'], null];
@@ -16,8 +16,8 @@ class GithubApi2MakeRequest
 
         $spec = $ctx->spec;
         $utility = $ctx->utility;
-        $response = new GithubApi2Response([]);
-        $result = new GithubApi2Result([]);
+        $response = new WaifuimResponse([]);
+        $result = new WaifuimResult([]);
         $ctx->result = $result;
 
         if (!$spec) {
@@ -43,9 +43,9 @@ class GithubApi2MakeRequest
         if ($fetch_err) {
             $response->err = $fetch_err;
         } elseif ($fetched === null) {
-            $response = new GithubApi2Response(['err' => $ctx->make_error('request_no_response', 'response: undefined')]);
+            $response = new WaifuimResponse(['err' => $ctx->make_error('request_no_response', 'response: undefined')]);
         } elseif (is_array($fetched)) {
-            $response = new GithubApi2Response($fetched);
+            $response = new WaifuimResponse($fetched);
         } else {
             $response->err = $ctx->make_error('request_invalid_response', 'response: invalid type');
         }

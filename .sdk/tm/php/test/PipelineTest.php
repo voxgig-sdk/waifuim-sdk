@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-// GithubApi2 SDK pipeline test
+// Waifuim SDK pipeline test
 //
 // Direct unit tests for the operation-pipeline utilities. The generated
 // entity tests exercise the happy path; these drive the error and edge
@@ -73,9 +73,9 @@ class PlEntity
 
 class PipelineTest extends TestCase
 {
-    private static function utility(): GithubApi2Utility
+    private static function utility(): WaifuimUtility
     {
-        return new GithubApi2Utility();
+        return new WaifuimUtility();
     }
 
     // Transport-shaped response array with a re-readable body.
@@ -94,15 +94,15 @@ class PipelineTest extends TestCase
         ];
     }
 
-    private static function ctx(array $over = []): GithubApi2Context
+    private static function ctx(array $over = []): WaifuimContext
     {
         $utility = $over['utility'] ?? self::utility();
         $client = $over['client'] ?? new PlClient(['base' => 'http://h']);
-        $ctx = new GithubApi2Context([
+        $ctx = new WaifuimContext([
             'client' => $client,
             'utility' => $utility,
         ], null);
-        $ctx->op = new GithubApi2Operation(['name' => 'load', 'entity' => 'x']);
+        $ctx->op = new WaifuimOperation(['name' => 'load', 'entity' => 'x']);
         foreach ($over as $k => $v) {
             if ($k === 'utility' || $k === 'client') {
                 continue;
@@ -114,7 +114,7 @@ class PipelineTest extends TestCase
 
     private static function code(mixed $err): string
     {
-        return ($err instanceof GithubApi2Error) ? $err->sdk_code : '';
+        return ($err instanceof WaifuimError) ? $err->sdk_code : '';
     }
 
 
@@ -127,7 +127,7 @@ class PipelineTest extends TestCase
     {
         $utility = self::utility();
         $client = new PlClient([]);
-        $ctx = new GithubApi2Context([
+        $ctx = new WaifuimContext([
             'client' => $client,
             'utility' => $utility,
         ], null);
@@ -188,8 +188,8 @@ class PipelineTest extends TestCase
     public function test_make_point_rejects_a_disallowed_operation(): void
     {
         $ctx = self::ctx(['options' => ['allow' => ['op' => 'load']]]);
-        $ctx->op = new GithubApi2Operation(['name' => 'nope', 'entity' => 'x']);
-        [$point, $err] = GithubApi2MakePoint::call($ctx);
+        $ctx->op = new WaifuimOperation(['name' => 'nope', 'entity' => 'x']);
+        [$point, $err] = WaifuimMakePoint::call($ctx);
         $this->assertNull($point);
         $this->assertSame('point_op_allow', self::code($err));
     }
@@ -197,8 +197,8 @@ class PipelineTest extends TestCase
     public function test_make_point_rejects_an_operation_with_no_endpoints(): void
     {
         $ctx = self::ctx(['options' => ['allow' => ['op' => 'load,list,create,update,remove']]]);
-        $ctx->op = new GithubApi2Operation(['name' => 'load', 'entity' => 'x', 'points' => []]);
-        [$point, $err] = GithubApi2MakePoint::call($ctx);
+        $ctx->op = new WaifuimOperation(['name' => 'load', 'entity' => 'x', 'points' => []]);
+        [$point, $err] = WaifuimMakePoint::call($ctx);
         $this->assertNull($point);
         $this->assertSame('point_no_points', self::code($err));
     }
@@ -207,8 +207,8 @@ class PipelineTest extends TestCase
     {
         $point = ['method' => 'GET', 'parts' => ['a']];
         $ctx = self::ctx(['options' => ['allow' => ['op' => 'load,list,create,update,remove']]]);
-        $ctx->op = new GithubApi2Operation(['name' => 'load', 'entity' => 'x', 'points' => [$point]]);
-        [$got, $err] = GithubApi2MakePoint::call($ctx);
+        $ctx->op = new WaifuimOperation(['name' => 'load', 'entity' => 'x', 'points' => [$point]]);
+        [$got, $err] = WaifuimMakePoint::call($ctx);
         $this->assertNull($err);
         $this->assertSame($point, $got);
     }
@@ -218,7 +218,7 @@ class PipelineTest extends TestCase
         $preset = ['method' => 'GET'];
         $ctx = self::ctx();
         $ctx->out['point'] = $preset;
-        [$got, $err] = GithubApi2MakePoint::call($ctx);
+        [$got, $err] = WaifuimMakePoint::call($ctx);
         $this->assertNull($err);
         $this->assertSame($preset, $got);
     }
@@ -231,7 +231,7 @@ class PipelineTest extends TestCase
         $ctx = self::ctx();
         $denial = $ctx->make_error('rbac_denied', 'Permission "admin" required for operation "load"');
         $ctx->out['point'] = $denial;
-        [$got, $err] = GithubApi2MakePoint::call($ctx);
+        [$got, $err] = WaifuimMakePoint::call($ctx);
         $this->assertNull($got);
         $this->assertSame($denial, $err);
         $this->assertSame('rbac_denied', self::code($err));
@@ -239,10 +239,10 @@ class PipelineTest extends TestCase
 
     public function test_make_spec_short_circuits_a_feature_supplied_spec(): void
     {
-        $preset = new GithubApi2Spec(['method' => 'GET']);
+        $preset = new WaifuimSpec(['method' => 'GET']);
         $ctx = self::ctx();
         $ctx->out['spec'] = $preset;
-        [$got, $err] = GithubApi2MakeSpec::call($ctx);
+        [$got, $err] = WaifuimMakeSpec::call($ctx);
         $this->assertNull($err);
         $this->assertSame($preset, $got);
     }
@@ -254,37 +254,37 @@ class PipelineTest extends TestCase
     {
         $ctx = self::ctx([
             'spec' => null,
-            'response' => new GithubApi2Response([]),
-            'result' => new GithubApi2Result([]),
+            'response' => new WaifuimResponse([]),
+            'result' => new WaifuimResult([]),
         ]);
-        [, $err] = GithubApi2MakeResponse::call($ctx);
+        [, $err] = WaifuimMakeResponse::call($ctx);
         $this->assertSame('response_no_spec', self::code($err));
 
         $ctx = self::ctx([
-            'spec' => new GithubApi2Spec([]),
+            'spec' => new WaifuimSpec([]),
             'response' => null,
-            'result' => new GithubApi2Result([]),
+            'result' => new WaifuimResult([]),
         ]);
-        [, $err] = GithubApi2MakeResponse::call($ctx);
+        [, $err] = WaifuimMakeResponse::call($ctx);
         $this->assertSame('response_no_response', self::code($err));
 
         $ctx = self::ctx([
-            'spec' => new GithubApi2Spec([]),
-            'response' => new GithubApi2Response([]),
+            'spec' => new WaifuimSpec([]),
+            'response' => new WaifuimResponse([]),
             'result' => null,
         ]);
-        [, $err] = GithubApi2MakeResponse::call($ctx);
+        [, $err] = WaifuimMakeResponse::call($ctx);
         $this->assertSame('response_no_result', self::code($err));
     }
 
     public function test_make_response_4xx_sets_result_err_and_copies_headers(): void
     {
         $ctx = self::ctx([
-            'spec' => new GithubApi2Spec(['step' => 's']),
-            'response' => new GithubApi2Response(self::resp(404, null, ['x-a' => '1'])),
-            'result' => new GithubApi2Result([]),
+            'spec' => new WaifuimSpec(['step' => 's']),
+            'response' => new WaifuimResponse(self::resp(404, null, ['x-a' => '1'])),
+            'result' => new WaifuimResult([]),
         ]);
-        [, $err] = GithubApi2MakeResponse::call($ctx);
+        [, $err] = WaifuimMakeResponse::call($ctx);
         $this->assertNull($err);
         $this->assertNotNull($ctx->result->err);
         $this->assertSame(404, $ctx->result->status);
@@ -295,11 +295,11 @@ class PipelineTest extends TestCase
     public function test_make_response_2xx_parses_the_body_and_marks_ok(): void
     {
         $ctx = self::ctx([
-            'spec' => new GithubApi2Spec(['step' => 's']),
-            'response' => new GithubApi2Response(self::resp(200, ['v' => 1])),
-            'result' => new GithubApi2Result([]),
+            'spec' => new WaifuimSpec(['step' => 's']),
+            'response' => new WaifuimResponse(self::resp(200, ['v' => 1])),
+            'result' => new WaifuimResult([]),
         ]);
-        [, $err] = GithubApi2MakeResponse::call($ctx);
+        [, $err] = WaifuimMakeResponse::call($ctx);
         $this->assertNull($err);
         $this->assertTrue($ctx->result->ok);
         $this->assertSame(['v' => 1], $ctx->result->body);
@@ -308,25 +308,25 @@ class PipelineTest extends TestCase
     public function test_make_response_records_to_ctrl_explain_when_explain_is_on(): void
     {
         $ctx = self::ctx([
-            'spec' => new GithubApi2Spec(['step' => 's']),
-            'response' => new GithubApi2Response(self::resp(200, ['v' => 2])),
-            'result' => new GithubApi2Result([]),
+            'spec' => new WaifuimSpec(['step' => 's']),
+            'response' => new WaifuimResponse(self::resp(200, ['v' => 2])),
+            'result' => new WaifuimResult([]),
         ]);
         $ctx->ctrl->explain = ['on' => true];
-        GithubApi2MakeResponse::call($ctx);
+        WaifuimMakeResponse::call($ctx);
         $this->assertNotNull($ctx->ctrl->explain['result'] ?? null);
     }
 
     public function test_make_response_short_circuits_a_feature_supplied_response(): void
     {
-        $preset = new GithubApi2Response(self::resp(299));
+        $preset = new WaifuimResponse(self::resp(299));
         $ctx = self::ctx([
-            'spec' => new GithubApi2Spec([]),
-            'response' => new GithubApi2Response([]),
-            'result' => new GithubApi2Result([]),
+            'spec' => new WaifuimSpec([]),
+            'response' => new WaifuimResponse([]),
+            'result' => new WaifuimResult([]),
         ]);
         $ctx->out['response'] = $preset;
-        [$got, $err] = GithubApi2MakeResponse::call($ctx);
+        [$got, $err] = WaifuimMakeResponse::call($ctx);
         $this->assertNull($err);
         $this->assertSame($preset, $got);
     }
@@ -336,12 +336,12 @@ class PipelineTest extends TestCase
 
     public function test_make_result_guards_missing_spec_and_result(): void
     {
-        $ctx = self::ctx(['spec' => null, 'result' => new GithubApi2Result([])]);
-        [, $err] = GithubApi2MakeResult::call($ctx);
+        $ctx = self::ctx(['spec' => null, 'result' => new WaifuimResult([])]);
+        [, $err] = WaifuimMakeResult::call($ctx);
         $this->assertSame('result_no_spec', self::code($err));
 
-        $ctx = self::ctx(['spec' => new GithubApi2Spec([]), 'result' => null]);
-        [, $err] = GithubApi2MakeResult::call($ctx);
+        $ctx = self::ctx(['spec' => new WaifuimSpec([]), 'result' => null]);
+        [, $err] = WaifuimMakeResult::call($ctx);
         $this->assertSame('result_no_result', self::code($err));
     }
 
@@ -350,11 +350,11 @@ class PipelineTest extends TestCase
         $entity = new PlEntity();
         $ctx = self::ctx([
             'entity' => $entity,
-            'spec' => new GithubApi2Spec(['step' => 's']),
-            'result' => new GithubApi2Result(['ok' => true, 'resdata' => [['a' => 1], ['a' => 2]]]),
+            'spec' => new WaifuimSpec(['step' => 's']),
+            'result' => new WaifuimResult(['ok' => true, 'resdata' => [['a' => 1], ['a' => 2]]]),
         ]);
-        $ctx->op = new GithubApi2Operation(['name' => 'list', 'entity' => 'x']);
-        [$result, $err] = GithubApi2MakeResult::call($ctx);
+        $ctx->op = new WaifuimOperation(['name' => 'list', 'entity' => 'x']);
+        [$result, $err] = WaifuimMakeResult::call($ctx);
         $this->assertNull($err);
         $this->assertCount(2, $result->resdata);
         $this->assertCount(2, $entity->made);
@@ -366,11 +366,11 @@ class PipelineTest extends TestCase
         $entity = new PlEntity();
         $ctx = self::ctx([
             'entity' => $entity,
-            'spec' => new GithubApi2Spec(['step' => 's']),
-            'result' => new GithubApi2Result(['ok' => true, 'resdata' => []]),
+            'spec' => new WaifuimSpec(['step' => 's']),
+            'result' => new WaifuimResult(['ok' => true, 'resdata' => []]),
         ]);
-        $ctx->op = new GithubApi2Operation(['name' => 'list', 'entity' => 'x']);
-        [$result, $err] = GithubApi2MakeResult::call($ctx);
+        $ctx->op = new WaifuimOperation(['name' => 'list', 'entity' => 'x']);
+        [$result, $err] = WaifuimMakeResult::call($ctx);
         $this->assertNull($err);
         $this->assertSame([], $result->resdata);
         $this->assertCount(0, $entity->made);
@@ -378,13 +378,13 @@ class PipelineTest extends TestCase
 
     public function test_make_result_short_circuits_on_a_preset_result(): void
     {
-        $preset = new GithubApi2Result(['ok' => true]);
+        $preset = new WaifuimResult(['ok' => true]);
         $ctx = self::ctx([
-            'spec' => new GithubApi2Spec([]),
-            'result' => new GithubApi2Result([]),
+            'spec' => new WaifuimSpec([]),
+            'result' => new WaifuimResult([]),
         ]);
         $ctx->out['result'] = $preset;
-        [$got, $err] = GithubApi2MakeResult::call($ctx);
+        [$got, $err] = WaifuimMakeResult::call($ctx);
         $this->assertNull($err);
         $this->assertSame($preset, $got);
     }
@@ -395,22 +395,22 @@ class PipelineTest extends TestCase
     public function test_make_request_guards_a_missing_spec(): void
     {
         $ctx = self::ctx(['spec' => null]);
-        [, $err] = GithubApi2MakeRequest::call($ctx);
+        [, $err] = WaifuimMakeRequest::call($ctx);
         $this->assertSame('request_no_spec', self::code($err));
     }
 
     public function test_make_request_a_transport_error_is_carried_on_the_response(): void
     {
         $utility = self::utility();
-        $boom = new GithubApi2Error('boom', 'boom');
-        $utility->fetcher = function (GithubApi2Context $_c, string $_u, array $_f) use ($boom): array {
+        $boom = new WaifuimError('boom', 'boom');
+        $utility->fetcher = function (WaifuimContext $_c, string $_u, array $_f) use ($boom): array {
             return [null, $boom];
         };
         $ctx = self::ctx([
             'utility' => $utility,
-            'spec' => new GithubApi2Spec(['step' => 's', 'method' => 'GET', 'base' => 'http://h', 'parts' => ['a']]),
+            'spec' => new WaifuimSpec(['step' => 's', 'method' => 'GET', 'base' => 'http://h', 'parts' => ['a']]),
         ]);
-        [$response, $err] = GithubApi2MakeRequest::call($ctx);
+        [$response, $err] = WaifuimMakeRequest::call($ctx);
         $this->assertNull($err);
         $this->assertSame($boom, $response->err);
     }
@@ -418,14 +418,14 @@ class PipelineTest extends TestCase
     public function test_make_request_a_null_transport_result_becomes_a_response_error(): void
     {
         $utility = self::utility();
-        $utility->fetcher = function (GithubApi2Context $_c, string $_u, array $_f): array {
+        $utility->fetcher = function (WaifuimContext $_c, string $_u, array $_f): array {
             return [null, null];
         };
         $ctx = self::ctx([
             'utility' => $utility,
-            'spec' => new GithubApi2Spec(['step' => 's', 'method' => 'GET', 'base' => 'http://h', 'parts' => ['a']]),
+            'spec' => new WaifuimSpec(['step' => 's', 'method' => 'GET', 'base' => 'http://h', 'parts' => ['a']]),
         ]);
-        [$response, $err] = GithubApi2MakeRequest::call($ctx);
+        [$response, $err] = WaifuimMakeRequest::call($ctx);
         $this->assertNull($err);
         $this->assertNotNull($response->err);
         $this->assertSame('request_no_response', self::code($response->err));
@@ -434,45 +434,45 @@ class PipelineTest extends TestCase
     public function test_make_request_a_normal_transport_response_is_wrapped(): void
     {
         $utility = self::utility();
-        $utility->fetcher = function (GithubApi2Context $_c, string $_u, array $_f): array {
+        $utility->fetcher = function (WaifuimContext $_c, string $_u, array $_f): array {
             return [PipelineTest::resp_public(200, ['a' => 1]), null];
         };
         $ctx = self::ctx([
             'utility' => $utility,
-            'spec' => new GithubApi2Spec(['step' => 's', 'method' => 'GET', 'base' => 'http://h', 'parts' => ['a']]),
+            'spec' => new WaifuimSpec(['step' => 's', 'method' => 'GET', 'base' => 'http://h', 'parts' => ['a']]),
         ]);
-        [$response, $err] = GithubApi2MakeRequest::call($ctx);
+        [$response, $err] = WaifuimMakeRequest::call($ctx);
         $this->assertNull($err);
-        $this->assertInstanceOf(GithubApi2Response::class, $response);
+        $this->assertInstanceOf(WaifuimResponse::class, $response);
         $this->assertSame(200, $response->status);
     }
 
     public function test_make_request_records_the_fetchdef_to_ctrl_explain(): void
     {
         $utility = self::utility();
-        $utility->fetcher = function (GithubApi2Context $_c, string $_u, array $_f): array {
+        $utility->fetcher = function (WaifuimContext $_c, string $_u, array $_f): array {
             return [PipelineTest::resp_public(200, []), null];
         };
         $ctx = self::ctx([
             'utility' => $utility,
-            'spec' => new GithubApi2Spec(['step' => 's', 'method' => 'GET', 'base' => 'http://h', 'parts' => ['a']]),
+            'spec' => new WaifuimSpec(['step' => 's', 'method' => 'GET', 'base' => 'http://h', 'parts' => ['a']]),
         ]);
         $ctx->ctrl->explain = ['on' => true];
-        GithubApi2MakeRequest::call($ctx);
+        WaifuimMakeRequest::call($ctx);
         $this->assertNotNull($ctx->ctrl->explain['fetchdef'] ?? null);
     }
 
     public function test_make_request_a_fetchdef_error_surfaces_as_a_response_error(): void
     {
         $utility = self::utility();
-        $utility->make_fetch_def = function (GithubApi2Context $c): array {
+        $utility->make_fetch_def = function (WaifuimContext $c): array {
             return [null, $c->make_error('fetchdef_boom', 'boom')];
         };
         $ctx = self::ctx([
             'utility' => $utility,
-            'spec' => new GithubApi2Spec(['step' => 's', 'method' => 'GET']),
+            'spec' => new WaifuimSpec(['step' => 's', 'method' => 'GET']),
         ]);
-        [$response, $err] = GithubApi2MakeRequest::call($ctx);
+        [$response, $err] = WaifuimMakeRequest::call($ctx);
         $this->assertNull($err);
         $this->assertNotNull($response->err);
         $this->assertSame('fetchdef_boom', self::code($response->err));
@@ -481,10 +481,10 @@ class PipelineTest extends TestCase
 
     public function test_make_request_short_circuits_a_feature_supplied_request(): void
     {
-        $preset = new GithubApi2Response(self::resp(201));
-        $ctx = self::ctx(['spec' => new GithubApi2Spec([])]);
+        $preset = new WaifuimResponse(self::resp(201));
+        $ctx = self::ctx(['spec' => new WaifuimSpec([])]);
         $ctx->out['request'] = $preset;
-        [$got, $err] = GithubApi2MakeRequest::call($ctx);
+        [$got, $err] = WaifuimMakeRequest::call($ctx);
         $this->assertNull($err);
         $this->assertSame($preset, $got);
     }
@@ -501,20 +501,20 @@ class PipelineTest extends TestCase
     public function test_make_fetch_def_guards_a_missing_spec(): void
     {
         $ctx = self::ctx(['spec' => null]);
-        [, $err] = GithubApi2MakeFetchDef::call($ctx);
+        [, $err] = WaifuimMakeFetchDef::call($ctx);
         $this->assertSame('fetchdef_no_spec', self::code($err));
     }
 
     public function test_make_fetch_def_serialises_body_and_inits_missing_result(): void
     {
         $ctx = self::ctx([
-            'spec' => new GithubApi2Spec([
+            'spec' => new WaifuimSpec([
                 'step' => 's', 'method' => 'POST', 'base' => 'http://h',
                 'prefix' => '', 'suffix' => '', 'path' => 'a', 'body' => ['x' => 1],
             ]),
             'result' => null,
         ]);
-        [$fetchdef, $err] = GithubApi2MakeFetchDef::call($ctx);
+        [$fetchdef, $err] = WaifuimMakeFetchDef::call($ctx);
         $this->assertNull($err);
         $this->assertIsString($fetchdef['body']);
         $this->assertStringContainsString('http://h', $fetchdef['url']);
@@ -526,30 +526,30 @@ class PipelineTest extends TestCase
 
     public function test_done_returns_resdata_on_success(): void
     {
-        $ctx = self::ctx(['result' => new GithubApi2Result(['ok' => true, 'resdata' => 42])]);
-        $this->assertSame(42, GithubApi2Done::call($ctx));
+        $ctx = self::ctx(['result' => new WaifuimResult(['ok' => true, 'resdata' => 42])]);
+        $this->assertSame(42, WaifuimDone::call($ctx));
     }
 
     public function test_done_raises_the_error_when_not_ok(): void
     {
-        $ctx = self::ctx(['result' => new GithubApi2Result(['ok' => false])]);
-        $this->expectException(GithubApi2Error::class);
-        GithubApi2Done::call($ctx);
+        $ctx = self::ctx(['result' => new WaifuimResult(['ok' => false])]);
+        $this->expectException(WaifuimError::class);
+        WaifuimDone::call($ctx);
     }
 
     public function test_make_error_returns_resdata_when_ctrl_throw_is_false(): void
     {
-        $ctx = self::ctx(['result' => new GithubApi2Result(['ok' => false, 'resdata' => 'fallback'])]);
+        $ctx = self::ctx(['result' => new WaifuimResult(['ok' => false, 'resdata' => 'fallback'])]);
         $ctx->ctrl->throw_err = false;
-        $this->assertSame('fallback', GithubApi2MakeError::call($ctx, null));
+        $this->assertSame('fallback', WaifuimMakeError::call($ctx, null));
     }
 
     public function test_make_error_records_to_ctrl_explain(): void
     {
-        $ctx = self::ctx(['result' => new GithubApi2Result(['ok' => false])]);
+        $ctx = self::ctx(['result' => new WaifuimResult(['ok' => false])]);
         $ctx->ctrl->throw_err = false;
         $ctx->ctrl->explain = ['on' => true];
-        GithubApi2MakeError::call($ctx, null);
+        WaifuimMakeError::call($ctx, null);
         $this->assertNotNull($ctx->ctrl->explain['err'] ?? null);
     }
 
@@ -560,16 +560,16 @@ class PipelineTest extends TestCase
     {
         $client = new PlClient([]);
         $ctx = self::ctx(['client' => $client]);
-        $a = new GithubApi2BaseFeature();
-        $b = new GithubApi2BaseFeature();
-        GithubApi2FeatureAdd::call($ctx, $a);
-        GithubApi2FeatureAdd::call($ctx, $b);
+        $a = new WaifuimBaseFeature();
+        $b = new WaifuimBaseFeature();
+        WaifuimFeatureAdd::call($ctx, $a);
+        WaifuimFeatureAdd::call($ctx, $b);
         $this->assertSame([$a, $b], $client->features);
     }
 
-    private static function named_feature(string $name): GithubApi2BaseFeature
+    private static function named_feature(string $name): WaifuimBaseFeature
     {
-        $f = new GithubApi2BaseFeature();
+        $f = new WaifuimBaseFeature();
         $f->name = $name;
         return $f;
     }
@@ -582,88 +582,210 @@ class PipelineTest extends TestCase
         $ctx = self::ctx(['client' => $client]);
         $names = fn() => array_map(fn($f) => $f->name, $client->features);
 
-        GithubApi2FeatureAdd::call($ctx, self::named_feature('a'));
-        GithubApi2FeatureAdd::call($ctx, self::named_feature('b'));
+        WaifuimFeatureAdd::call($ctx, self::named_feature('a'));
+        WaifuimFeatureAdd::call($ctx, self::named_feature('b'));
         $this->assertSame(['a', 'b'], $names());
 
         $before = self::named_feature('z1');
         $before->_options = ['__before__' => 'b'];
-        GithubApi2FeatureAdd::call($ctx, $before);
+        WaifuimFeatureAdd::call($ctx, $before);
         $this->assertSame(['a', 'z1', 'b'], $names());
 
         $after = self::named_feature('z2');
         $after->_options = ['__after__' => 'a'];
-        GithubApi2FeatureAdd::call($ctx, $after);
+        WaifuimFeatureAdd::call($ctx, $after);
         $this->assertSame(['a', 'z2', 'z1', 'b'], $names());
 
         $replace = self::named_feature('z3');
         $replace->_options = ['__replace__' => 'z1'];
-        GithubApi2FeatureAdd::call($ctx, $replace);
+        WaifuimFeatureAdd::call($ctx, $replace);
         $this->assertSame(['a', 'z2', 'z3', 'b'], $names());
 
         // An ordering option naming no existing feature falls back to append.
         $miss = self::named_feature('z4');
         $miss->_options = ['__before__' => 'missing'];
-        GithubApi2FeatureAdd::call($ctx, $miss);
+        WaifuimFeatureAdd::call($ctx, $miss);
         $this->assertSame(['a', 'z2', 'z3', 'b', 'z4'], $names());
     }
 
 
     // --- prepare_auth ------------------------------------------------------------
 
-    private static function auth_ctx(array $options, ?array $headers): GithubApi2Context
+    /**
+     * A cookie credential as prepare_auth writes it: `<scheme>=K` for the
+     * probe key, with no scheme prefix and nothing else in the bag.
+     */
+    private const COOKIE_PAIR = '/^[^=;]+=K$/';
+
+    private static function auth_ctx(array $options, ?WaifuimSpec $spec): WaifuimContext
     {
         $client = new PlClient($options);
         return self::ctx([
             'client' => $client,
-            'spec' => $headers === null ? null : new GithubApi2Spec(['headers' => $headers]),
+            'spec' => $spec,
         ]);
+    }
+
+    private static function auth_bags(): WaifuimSpec
+    {
+        return new WaifuimSpec(['headers' => [], 'query' => []]);
+    }
+
+    /**
+     * `basic: false` is explicit: an HTTP Basic API's generated config carries
+     * `auth.basic: true`, and a client that merges it in takes a branch that
+     * needs a secret as well. With none supplied that branch deliberately
+     * writes nothing, which the probe would read as a public API.
+     */
+    private static function auth_block(string $prefix): array
+    {
+        return ['prefix' => $prefix, 'basic' => false];
+    }
+
+    /**
+     * Run prepare_auth with both containers present and see which one the
+     * generated utility writes to, and under what name. Null means this SDK
+     * places no credential at all - a public API - which is a legitimate
+     * shape, and the tests below assert exactly that instead. `pair` is the
+     * `<scheme>=` lead-in of a COOKIE credential, which rides the header bag
+     * under the key `cookie` instead of taking a header of its own.
+     *
+     * @return array{where:string,name:string,value:mixed,pair:string}|null
+     */
+    private static function auth_probe(array $options): ?array
+    {
+        $ctx = self::auth_ctx($options, self::auth_bags());
+        WaifuimPrepareAuth::call($ctx);
+        foreach (['headers', 'query'] as $where) {
+            // A cookie credential rides the header bag, because a cookie IS
+            // a header.
+            $bag = 'query' === $where ? $ctx->spec->query : $ctx->spec->headers;
+            foreach ($bag as $name => $value) {
+                $pair = '';
+                if ('headers' === $where && 'cookie' === $name && is_string($value)
+                    && 1 === preg_match(self::COOKIE_PAIR, $value)) {
+                    $pair = substr($value, 0, -1);
+                }
+                return ['where' => $where, 'name' => $name, 'value' => $value, 'pair' => $pair];
+            }
+        }
+        return null;
+    }
+
+    /** @return array{where:string,name:string,value:mixed,pair:string}|null */
+    private static function auth_credential(): ?array
+    {
+        return self::auth_probe(
+            ['apikey' => 'K', 'auth' => self::auth_block('Bearer')]);
+    }
+
+    /**
+     * Every credential this SDK could possibly place: both credentials and
+     * Basic switched on, so whichever branch the API has, something lands
+     * unless the API is public.
+     *
+     * @return array{where:string,name:string,value:mixed,pair:string}|null
+     */
+    private static function auth_any_credential(): ?array
+    {
+        return self::auth_probe([
+            'apikey' => 'K', 'secret' => 'S',
+            'auth' => ['prefix' => 'Bearer', 'basic' => true],
+        ]);
+    }
+
+    /** @return array{0:mixed,1:bool} the value left in the credential slot, and whether it is there */
+    private static function auth_placed(array $options, $seed = null): array
+    {
+        $cred = self::auth_credential();
+        $spec = self::auth_bags();
+        if (null !== $cred && null !== $seed) {
+            // Seed what prepare_auth would have written: pair is the
+            // "<scheme>=" lead-in for a cookie and '' for a header or query,
+            // so a clearing case removes a credential this SDK owns rather
+            // than a cookie the caller put there.
+            $seeded = $cred['pair'] . $seed;
+            if ('query' === $cred['where']) {
+                $spec->query[$cred['name']] = $seeded;
+            } else {
+                $spec->headers[$cred['name']] = $seeded;
+            }
+        }
+        $ctx = self::auth_ctx($options, $spec);
+        WaifuimPrepareAuth::call($ctx);
+        if (null === $cred) {
+            return [null, false];
+        }
+        $bag = 'query' === $cred['where'] ? $ctx->spec->query : $ctx->spec->headers;
+        return [$bag[$cred['name']] ?? null, array_key_exists($cred['name'], $bag)];
     }
 
     public function test_prepare_auth_guards_a_missing_spec(): void
     {
-        $ctx = self::auth_ctx(['auth' => ['prefix' => ''], 'apikey' => 'K'], null);
-        [, $err] = GithubApi2PrepareAuth::call($ctx);
+        $ctx = self::auth_ctx(['auth' => self::auth_block(''), 'apikey' => 'K'], null);
+        [, $err] = WaifuimPrepareAuth::call($ctx);
         $this->assertSame('auth_no_spec', self::code($err));
     }
 
-    public function test_prepare_auth_an_apikey_with_a_prefix_is_space_joined(): void
+    /**
+     * Without this the cases below cannot fail for an SDK whose credential the
+     * probe misses: every one of them takes the public-API path instead.
+     */
+    public function test_prepare_auth_probe_finds_the_credential_this_sdk_places(): void
     {
-        $ctx = self::auth_ctx(['apikey' => 'K', 'auth' => ['prefix' => 'Bearer']], []);
-        [, $err] = GithubApi2PrepareAuth::call($ctx);
-        $this->assertNull($err);
-        $this->assertSame('Bearer K', $ctx->spec->headers['authorization']);
+        $this->assertSame(
+            null === self::auth_credential(), null === self::auth_any_credential());
+    }
+
+    public function test_prepare_auth_places_the_apikey_where_this_api_puts_it(): void
+    {
+        $cred = self::auth_credential();
+        if (null === $cred) {
+            // A public API places nothing, and that is the whole assertion.
+            [, $has] = self::auth_placed(['apikey' => 'K', 'auth' => self::auth_block('Bearer')]);
+            $this->assertFalse($has);
+            return;
+        }
+        $this->assertContains($cred['where'], ['headers', 'query']);
+        if ('' !== $cred['pair']) {
+            // A cookie credential is a `<scheme>=<key>` pair, and the scheme
+            // name leaves no room for the option's prefix.
+            $this->assertMatchesRegularExpression(self::COOKIE_PAIR, $cred['value']);
+            return;
+        }
+        // A header credential is prefix-joined; a query credential is the raw
+        // key, because a query parameter has nowhere to put a scheme name.
+        $this->assertSame('query' === $cred['where'] ? 'K' : 'Bearer K', $cred['value']);
     }
 
     public function test_prepare_auth_a_raw_apikey_goes_in_as_is(): void
     {
-        $ctx = self::auth_ctx(['apikey' => 'K', 'auth' => ['prefix' => '']], []);
-        GithubApi2PrepareAuth::call($ctx);
-        $this->assertSame('K', $ctx->spec->headers['authorization']);
+        [$value, $has] = self::auth_placed(['apikey' => 'K', 'auth' => self::auth_block('')]);
+        $cred = self::auth_credential();
+        if (null === $cred) {
+            $this->assertFalse($has);
+            return;
+        }
+        $this->assertSame($cred['pair'] . 'K', $value);
     }
 
-    public function test_prepare_auth_an_empty_apikey_drops_the_header(): void
+    public function test_prepare_auth_an_empty_apikey_drops_the_credential(): void
     {
-        $ctx = self::auth_ctx(
-            ['apikey' => '', 'auth' => ['prefix' => 'Bearer']],
-            ['authorization' => 'stale']
-        );
-        GithubApi2PrepareAuth::call($ctx);
-        $this->assertArrayNotHasKey('authorization', $ctx->spec->headers);
+        [, $has] = self::auth_placed(
+            ['apikey' => '', 'auth' => self::auth_block('Bearer')], 'stale');
+        $this->assertFalse($has);
     }
 
-    public function test_prepare_auth_a_public_api_drops_the_header(): void
+    public function test_prepare_auth_a_public_api_drops_the_credential(): void
     {
-        $ctx = self::auth_ctx(['apikey' => 'K'], ['authorization' => 'stale']);
-        GithubApi2PrepareAuth::call($ctx);
-        $this->assertArrayNotHasKey('authorization', $ctx->spec->headers);
+        [, $has] = self::auth_placed(['apikey' => 'K'], 'stale');
+        $this->assertFalse($has);
     }
 
-    public function test_prepare_auth_a_missing_apikey_option_drops_the_header(): void
+    public function test_prepare_auth_a_missing_apikey_option_drops_the_credential(): void
     {
-        $ctx = self::auth_ctx(['auth' => ['prefix' => 'Bearer']], ['authorization' => 'stale']);
-        GithubApi2PrepareAuth::call($ctx);
-        $this->assertArrayNotHasKey('authorization', $ctx->spec->headers);
+        [, $has] = self::auth_placed(['auth' => self::auth_block('Bearer')], 'stale');
+        $this->assertFalse($has);
     }
 
 
@@ -672,23 +794,23 @@ class PipelineTest extends TestCase
     public function test_result_headers_with_non_array_headers_yields_empty_map(): void
     {
         $ctx = self::ctx([
-            'response' => new GithubApi2Response(['headers' => null]),
-            'result' => new GithubApi2Result([]),
+            'response' => new WaifuimResponse(['headers' => null]),
+            'result' => new WaifuimResult([]),
         ]);
-        GithubApi2ResultHeaders::call($ctx);
+        WaifuimResultHeaders::call($ctx);
         $this->assertSame([], $ctx->result->headers);
     }
 
     public function test_result_body_skips_parsing_when_the_body_is_absent(): void
     {
         $ctx = self::ctx([
-            'response' => new GithubApi2Response([
+            'response' => new WaifuimResponse([
                 'json' => function () { return ['a' => 1]; },
                 'body' => null,
             ]),
-            'result' => new GithubApi2Result([]),
+            'result' => new WaifuimResult([]),
         ]);
-        GithubApi2ResultBody::call($ctx);
+        WaifuimResultBody::call($ctx);
         $this->assertNull($ctx->result->body);
     }
 }

@@ -4,29 +4,29 @@
       "IMAGE00": {
         "artist": {},
         "category": "s47",
-        "height": "s48",
+        "height": 72,
         "id": "IMAGE00",
         "thumbnail": "s4a",
         "url": "s4b",
-        "width": "s4c"
+        "width": 76
       },
       "IMAGE01": {
         "artist": {},
         "category": "s8d",
-        "height": "s8e",
+        "height": 142,
         "id": "IMAGE01",
         "thumbnail": "s90",
         "url": "s91",
-        "width": "s92"
+        "width": 146
       },
       "IMAGE02": {
         "artist": {},
         "category": "sd3",
-        "height": "sd4",
+        "height": 212,
         "id": "IMAGE02",
         "thumbnail": "sd6",
         "url": "sd7",
-        "width": "sd8"
+        "width": 216
       }
     }
   },
@@ -35,11 +35,18 @@
       "image_ref01": {
         "artist": {},
         "category": "s119",
-        "height": "s11a",
+        "height": 282,
         "thumbnail": "s11c",
         "url": "s11d",
-        "width": "s11e"
+        "width": 286
       }
+    }
+  },
+  "requests": {
+    "GET /images": {
+      "provenance": "operation-contract",
+      "version": 2,
+      "source": "openapi3"
     }
   }
 }

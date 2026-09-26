@@ -1,14 +1,14 @@
 <?php
 declare(strict_types=1);
 
-// GithubApi2 SDK utility: make_context
+// Waifuim SDK utility: make_context
 
 require_once __DIR__ . '/../core/Context.php';
 
-class GithubApi2MakeContext
+class WaifuimMakeContext
 {
-    public static function call(array $ctxmap, ?GithubApi2Context $basectx): GithubApi2Context
+    public static function call(array $ctxmap, ?WaifuimContext $basectx): WaifuimContext
     {
-        return new GithubApi2Context($ctxmap, $basectx);
+        return new WaifuimContext($ctxmap, $basectx);
     }
 }

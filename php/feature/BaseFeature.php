@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-// GithubApi2 SDK base feature
+// Waifuim SDK base feature
 
-class GithubApi2BaseFeature
+class WaifuimBaseFeature
 {
     public string $version;
     public string $name;
@@ -26,18 +26,18 @@ class GithubApi2BaseFeature
     public function get_name(): string { return $this->name; }
     public function get_active(): bool { return $this->active; }
 
-    public function init(GithubApi2Context $ctx, array $options): void {}
-    public function PostConstruct(GithubApi2Context $ctx): void {}
-    public function PostConstructEntity(GithubApi2Context $ctx): void {}
-    public function SetData(GithubApi2Context $ctx): void {}
-    public function GetData(GithubApi2Context $ctx): void {}
-    public function GetMatch(GithubApi2Context $ctx): void {}
-    public function SetMatch(GithubApi2Context $ctx): void {}
-    public function PrePoint(GithubApi2Context $ctx): void {}
-    public function PreSpec(GithubApi2Context $ctx): void {}
-    public function PreRequest(GithubApi2Context $ctx): void {}
-    public function PreResponse(GithubApi2Context $ctx): void {}
-    public function PreResult(GithubApi2Context $ctx): void {}
-    public function PreDone(GithubApi2Context $ctx): void {}
-    public function PreUnexpected(GithubApi2Context $ctx): void {}
+    public function init(WaifuimContext $ctx, array $options): void {}
+    public function PostConstruct(WaifuimContext $ctx): void {}
+    public function PostConstructEntity(WaifuimContext $ctx): void {}
+    public function SetData(WaifuimContext $ctx): void {}
+    public function GetData(WaifuimContext $ctx): void {}
+    public function GetMatch(WaifuimContext $ctx): void {}
+    public function SetMatch(WaifuimContext $ctx): void {}
+    public function PrePoint(WaifuimContext $ctx): void {}
+    public function PreSpec(WaifuimContext $ctx): void {}
+    public function PreRequest(WaifuimContext $ctx): void {}
+    public function PreResponse(WaifuimContext $ctx): void {}
+    public function PreResult(WaifuimContext $ctx): void {}
+    public function PreDone(WaifuimContext $ctx): void {}
+    public function PreUnexpected(WaifuimContext $ctx): void {}
 }

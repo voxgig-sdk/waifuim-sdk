@@ -1,4 +1,4 @@
-# GithubApi2 SDK utility: clean
-module GithubApi2Utilities
+# Waifuim SDK utility: clean
+module WaifuimUtilities
   Clean = ->(ctx, val) { val }
 end

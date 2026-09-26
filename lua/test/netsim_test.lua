@@ -1,4 +1,4 @@
--- GithubApi2 SDK netsim test
+-- Waifuim SDK netsim test
 --
 -- Network-behaviour simulation over the offline mock transport. The
 -- `test` feature accepts an optional `net` config so unit tests can
@@ -7,7 +7,7 @@
 -- entity, so they run for every generated SDK regardless of its API
 -- shape.
 
-local sdk = require("github-api2_sdk")
+local sdk = require("waifuim_sdk")
 
 
 describe("netsim", function()

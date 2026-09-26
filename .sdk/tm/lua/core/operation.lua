@@ -1,4 +1,4 @@
--- GithubApi2 SDK operation
+-- Waifuim SDK operation
 
 local vs = require("utility.struct.struct")
 

@@ -1,4 +1,4 @@
-// VERSION: @voxgig/struct 0.0.10
+// VERSION: @voxgig/struct 0.3.2 (vendored via omni compat; see ../omni.ts)
 // RUN: npm test
 // RUN-SOME: npm run test-some --pattern=getpath
 
@@ -9,7 +9,7 @@ import {
   makeRunner,
   nullModifier,
   NULLMARK,
-} from '../runner'
+} from '../omni'
 
 
 import {
@@ -312,6 +312,27 @@ describe('struct', async () => {
     let intarr1 = [2, 3, 5, 7, 11]
     deepEqual(delprop(intarr0, 2), [2, 3, 7, 11])
     deepEqual(delprop(intarr1, '2'), [2, 3, 7, 11])
+  })
+
+
+  test('nullsem', async (t) => {
+    const nullsem = spec.nullsem
+    if (null == nullsem) {
+      t.skip('corpus predates struct.nullsem - refresh .sdk/test/struct from create-sdkgen')
+      return
+    }
+    const { getprop, getelem, getpath, haskey, keysof } = struct
+
+    await runsetflags(nullsem.getprop, { null: false }, (vin: any) =>
+      undefined === vin.alt ? getprop(vin.val, vin.key) : getprop(vin.val, vin.key, vin.alt))
+    await runsetflags(nullsem.getelem, { null: false }, (vin: any) =>
+      undefined === vin.alt ? getelem(vin.val, vin.key) : getelem(vin.val, vin.key, vin.alt))
+    await runsetflags(nullsem.getpath, { null: false }, (vin: any) =>
+      undefined === vin.alt ? getpath(vin.store, vin.path) : getpath(vin.store, vin.path, vin.alt))
+    await runsetflags(nullsem.haskey, { null: false }, (vin: any) =>
+      haskey(vin.src, vin.key))
+    await runsetflags(nullsem.keysof, { null: false }, (vin: any) =>
+      keysof(vin))
   })
 
 
@@ -795,7 +816,6 @@ describe('struct', async () => {
     const extra = {
       $INTEGER: (inj: any) => {
         const { key } = inj
-        // let out = getprop(current, key)
         let out = struct.getprop(inj.dparent, key)
 
         let t = typeof out

@@ -1,8 +1,8 @@
-# GithubApi2 Ruby SDK
+# Waifuim Ruby SDK
 
 
 
-The Ruby SDK for the GithubApi2 API — an entity-oriented client using idiomatic Ruby conventions.
+The Ruby SDK for the Waifuim API — an entity-oriented client using idiomatic Ruby conventions.
 
 The SDK exposes the API as capitalised, semantic **Entities** — for example `client.Artist` — with named operations (`list`) instead of raw URL paths and query strings. Working with resources and verbs keeps call sites self-describing and reduces cognitive load.
 
@@ -14,7 +14,7 @@ The SDK exposes the API as capitalised, semantic **Entities** — for example `c
 This package is not yet published to RubyGems. Install it from the
 GitHub release tag (`rb/vX.Y.Z`):
 
-- Releases: [https://github.com/voxgig-sdk/github-api2-sdk/releases](https://github.com/voxgig-sdk/github-api2-sdk/releases)
+- Releases: [https://github.com/voxgig-sdk/waifuim-sdk/releases](https://github.com/voxgig-sdk/waifuim-sdk/releases)
 
 
 ## Tutorial: your first API call
@@ -25,9 +25,9 @@ loading a specific record.
 ### 1. Create a client
 
 ```ruby
-require_relative "GithubApi2_sdk"
+require_relative "Waifuim_sdk"
 
-client = GithubApi2SDK.new
+client = WaifuimSDK.new
 ```
 
 ### 2. List artist records
@@ -117,7 +117,7 @@ end
 Create a mock client for unit testing — no server required:
 
 ```ruby
-client = GithubApi2SDK.test
+client = WaifuimSDK.test
 
 # Entity ops return the ENTITY (raises on error);
 # call data_get for the mock record.
@@ -139,7 +139,7 @@ mock_fetch = ->(url, init) {
   }, nil
 }
 
-client = GithubApi2SDK.new({
+client = WaifuimSDK.new({
   "base" => "http://localhost:8080",
   "system" => {
     "fetch" => mock_fetch,
@@ -152,7 +152,7 @@ client = GithubApi2SDK.new({
 Create a `.env.local` file at the project root:
 
 ```
-GITHUB_API2_TEST_LIVE=TRUE
+WAIFUIM_TEST_LIVE=TRUE
 ```
 
 Then run:
@@ -164,11 +164,11 @@ cd rb && ruby -Itest -e "Dir['test/*_test.rb'].each { |f| require_relative f }"
 
 ## Reference
 
-### GithubApi2SDK
+### WaifuimSDK
 
 ```ruby
-require_relative "GithubApi2_sdk"
-client = GithubApi2SDK.new(options)
+require_relative "Waifuim_sdk"
+client = WaifuimSDK.new(options)
 ```
 
 Creates a new SDK client.
@@ -185,12 +185,12 @@ Creates a new SDK client.
 ### test
 
 ```ruby
-client = GithubApi2SDK.test(testopts, sdkopts)
+client = WaifuimSDK.test(testopts, sdkopts)
 ```
 
 Creates a test-mode client with mock transport. Both arguments may be `nil`.
 
-### GithubApi2SDK methods
+### WaifuimSDK methods
 
 | Method | Signature | Description |
 | --- | --- | --- |
@@ -218,7 +218,7 @@ All entities share the same interface.
 ### Result shape
 
 Entity operations return the result data directly. On failure they
-raise a `GithubApi2Error` (a `StandardError` subclass), so wrap
+raise a `WaifuimError` (a `StandardError` subclass), so wrap
 calls in `begin`/`rescue` where you need to handle errors.
 
 The `direct` escape hatch is the exception: it never raises and instead
@@ -324,7 +324,7 @@ images = client.Image.list
 
 ## Features
 
-This SDK ships 1 optional features. Each is **inactive until you
+This SDK ships 4 optional features. Each is **inactive until you
 switch it on**, so an SDK you have not configured behaves exactly as if none of
 them existed — no retries, no cache, no logging, no measurable overhead.
 
@@ -333,17 +333,75 @@ above:
 
 | Feature | What it does |
 |---|---|
-| [`test`](#test) | In-memory mock transport for testing without a live server |
+| [`ratelimit`](#ratelimit) | Rate limiting |
+| [`retry`](#retry) | Retry |
+| [`test`](#test) | Test transport |
+| [`timeout`](#timeout) | Timeout |
+
+> **Order matters for `ratelimit`, `retry`, `timeout`.** These wrap the
+> transport, so each one wraps whatever is already installed: the order you
+> activate them in IS the nesting order. Activating them as an ordered list
+> rather than a map is what fixes that order.
+
+### ratelimit
+
+Rate limiting.
+
+| Option | Default |
+|---|---|
+| `active` | `false` |
+| `burst` | `5` |
+| `rate` | `5` |
+
+Set `feature.ratelimit.active` to enable it, then override any of the options above.
+
+`ratelimit` wraps the transport, so its position among the other
+transport features decides what it sees. A feature activated later wraps one
+activated earlier.
+
+### retry
+
+Retry.
+
+| Option | Default |
+|---|---|
+| `active` | `false` |
+| `factor` | `2` |
+| `maxDelay` | `2000` |
+| `minDelay` | `50` |
+| `retries` | `2` |
+| `statuses` | `[408, 425, 429, 500, 502, 503, 504]` |
+
+Set `feature.retry.active` to enable it, then override any of the options above.
+
+`retry` wraps the transport, so its position among the other
+transport features decides what it sees. A feature activated later wraps one
+activated earlier.
 
 ### test
 
-In-memory mock transport for testing without a live server.
+Test transport.
 
 | Option | Default |
 |---|---|
 | `active` | `false` |
 
 Set `feature.test.active` to enable it, then override any of the options above.
+
+### timeout
+
+Timeout.
+
+| Option | Default |
+|---|---|
+| `active` | `false` |
+| `ms` | `30000` |
+
+Set `feature.timeout.active` to enable it, then override any of the options above.
+
+`timeout` wraps the transport, so its position among the other
+transport features decides what it sees. A feature activated later wraps one
+activated earlier.
 
 
 ## Advanced
@@ -384,7 +442,10 @@ with hook methods named after pipeline stages (e.g. `PrePoint`,
 
 The SDK ships with built-in features:
 
-- **TestFeature**: In-memory mock transport for testing without a live server
+- **RatelimitFeature**: Rate limiting
+- **RetryFeature**: Retry
+- **TestFeature**: Test transport
+- **TimeoutFeature**: Timeout
 
 Features are initialized in order. Hooks fire in the order features
 were added, so later features can override earlier ones.
@@ -402,8 +463,9 @@ Use `Helpers.to_map()` to safely validate that a value is a hash.
 
 ```
 rb/
-├── GithubApi2_sdk.rb       -- Main SDK module
+├── Waifuim_sdk.rb       -- Main SDK module
 ├── config.rb                  -- Configuration
+├── schema.rb                  -- Generated option + entity specs
 ├── features.rb                -- Feature factory
 ├── core/                      -- Core types and context
 ├── entity/                    -- Entity implementations
@@ -412,7 +474,7 @@ rb/
 └── test/                      -- Test suites
 ```
 
-The main module (`GithubApi2_sdk`) exports the SDK class
+The main module (`Waifuim_sdk`) exports the SDK class
 and test helper. Import entity or utility modules directly only
 when needed.
 

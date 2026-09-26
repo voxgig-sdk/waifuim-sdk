@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-// GithubApi2 SDK utility: prepare_headers
+// Waifuim SDK utility: prepare_headers
 
-class GithubApi2PrepareHeaders
+class WaifuimPrepareHeaders
 {
-    public static function call(GithubApi2Context $ctx): array
+    public static function call(WaifuimContext $ctx): array
     {
         $options = $ctx->client->options_map();
         $headers = \Voxgig\Struct\Struct::getprop($options, 'headers');

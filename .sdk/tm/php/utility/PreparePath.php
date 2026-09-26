@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-// GithubApi2 SDK utility: prepare_path
+// Waifuim SDK utility: prepare_path
 
-class GithubApi2PreparePath
+class WaifuimPreparePath
 {
-    public static function call(GithubApi2Context $ctx): string
+    public static function call(WaifuimContext $ctx): string
     {
         $point = $ctx->point;
         $parts = [];

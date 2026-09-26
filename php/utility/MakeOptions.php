@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-// GithubApi2 SDK utility: make_options
+// Waifuim SDK utility: make_options
 
-class GithubApi2MakeOptions
+class WaifuimMakeOptions
 {
     private static function to_array_deep(mixed $val): mixed
     {
@@ -23,7 +23,7 @@ class GithubApi2MakeOptions
         return $val;
     }
 
-    public static function call(GithubApi2Context $ctx): array
+    public static function call(WaifuimContext $ctx): array
     {
         $options = $ctx->options ?? [];
 
@@ -94,10 +94,29 @@ class GithubApi2MakeOptions
             }
         }
 
+        // `auth: null` is the documented way to disable auth outright, and
+        // prepareAuth honours it before it ever reads the apikey. It cannot
+        // survive validate: depending on the struct port a stored null is
+        // either REPLACED by the optspec default - transmitting the
+        // credential the caller withheld - or REJECTED outright. Withhold the
+        // key for validate, then put the null back. Same fix as ts/js/go
+        // makeOptions.
+        //
+        // Suppliedness cannot be recovered after validate, hence here, and it
+        // must tell an ABSENT auth from a present null: array_key_exists
+        // rather than isset, which is false for both.
+        $authsuppressed = is_array($options)
+            && array_key_exists('auth', $options)
+            && null === $options['auth'];
+
         $opts = \Voxgig\Struct\Struct::clone($options);
         $opts = self::to_array_deep($opts);
         if (!is_array($opts)) {
             $opts = [];
+        }
+
+        if ($authsuppressed) {
+            unset($opts['auth']);
         }
 
         // Feature add-order. options['feature'] may be given as an ordered LIST
@@ -128,30 +147,21 @@ class GithubApi2MakeOptions
         $config = $ctx->config ?? [];
         $cfgopts = isset($config['options']) && is_array($config['options']) ? $config['options'] : [];
 
-        $optspec = [
-            'apikey' => '',
-            'secret' => '',
-            'base' => 'http://localhost:8000',
-            'prefix' => '',
-            'suffix' => '',
-            'auth' => ['prefix' => '', 'basic' => false],
-            'headers' => ['`$CHILD`' => '`$STRING`'],
-            'allow' => [
-                'method' => 'GET,PUT,POST,PATCH,DELETE,OPTIONS',
-                'op' => 'create,update,load,list,remove,command,direct,graphql',
-            ],
-            'entity' => ['`$CHILD`' => ['`$OPEN`' => true, 'active' => false, 'alias' => (object)[]]],
-            'feature' => ['`$CHILD`' => ['`$OPEN`' => true, 'active' => false]],
-            'utility' => (object)[],
-            'system' => (object)[],
-            'test' => ['active' => false, 'entity' => ['`$OPEN`' => true]],
-            'clean' => ['keys' => 'key,token,id'],
-            // Server-variable values for a templated base URL (OpenAPI server
-            // variables): {name} placeholders in 'base' are substituted from
-            // this map at construction. Spec defaults arrive via the generated
-            // config; user values override them.
-            'server' => ['`$CHILD`' => ''],
-        ];
+        // THE OPTION SPEC IS GENERATED, NOT WRITTEN HERE.
+        //
+        // `WaifuimSchema::optspec()` is built from the model:
+        // `main.kit.optspec` for the standard options, plus one entry per
+        // feature this target carries, taken from that feature's own
+        // `config.options` / `config.optspec`. Editing this file to add an
+        // option would put it back where it was — one of twenty
+        // hand-maintained copies of a schema nothing cross-checked — so add
+        // it to the model instead and every ported target validates it.
+        //
+        // Required explicitly rather than left to the classmap: the generated
+        // SDK is exercised (README examples, the compile checks) without a
+        // dumped composer autoload.
+        require_once __DIR__ . '/../schema.php';
+        $optspec = WaifuimSchema::optspec();
 
         // Empty [] would be treated as a list and clobber the map under merge;
         // substitute an empty stdClass to preserve map semantics.
@@ -162,6 +172,11 @@ class GithubApi2MakeOptions
         $opts = self::to_array_deep($validated);
         if (!is_array($opts)) {
             $opts = [];
+        }
+
+        // Restore the suppression the optspec default would otherwise erase.
+        if ($authsuppressed) {
+            $opts['auth'] = null;
         }
 
         // Reattach the station binding handle held aside above (the feature

@@ -1,12 +1,23 @@
 
 import { BaseFeature } from './feature/base/BaseFeature'
+import { RatelimitFeature } from './feature/ratelimit/RatelimitFeature'
+import { RetryFeature } from './feature/retry/RetryFeature'
 import { TestFeature } from './feature/test/TestFeature'
+import { TimeoutFeature } from './feature/timeout/TimeoutFeature'
 
 
 
 const FEATURE_CLASS: Record<string, typeof BaseFeature> = {
-   test: TestFeature,
+   ratelimit: RatelimitFeature,
+ retry: RetryFeature,
+ test: TestFeature,
+ timeout: TimeoutFeature,
 
+}
+
+
+const FEATURE_PLUGINS: Record<string, any[]> = {
+  
 }
 
 
@@ -15,7 +26,6 @@ class Config {
   makeFeature(this: any, fn: string) {
     const fc = FEATURE_CLASS[fn]
     const fi = new fc()
-    // TODO: errors etc
     return fi
   }
 
@@ -28,8 +38,8 @@ class Config {
 
 
   main = {
-    name: 'GithubApi2',
-        slug: "github-api2",
+    name: 'Waifuim',
+        slug: "waifuim",
     version: "0.0.1",
     target: "ts",
 
@@ -37,11 +47,65 @@ class Config {
 
 
   feature = {
-     test:     {
+     ratelimit:     {
+      "options": {
+        "active": false,
+        "burst": 5,
+        "rate": 5
+      },
+      "optspec": {
+        "now": "`$FUNCTION`",
+        "sleep": "`$FUNCTION`"
+      },
+      "strict": false,
+      "transport": "wrap"
+    },
+ retry:     {
+      "options": {
+        "active": false,
+        "factor": 2,
+        "maxDelay": 2000,
+        "minDelay": 50,
+        "retries": 2,
+        "statuses": [
+          408,
+          425,
+          429,
+          500,
+          502,
+          503,
+          504
+        ]
+      },
+      "optspec": {
+        "jitter": "`$BOOLEAN`",
+        "sleep": "`$FUNCTION`"
+      },
+      "strict": false,
+      "transport": "wrap"
+    },
+ test:     {
       "options": {
         "active": false
       },
+      "optspec": {
+        "entity": "`$MAP`",
+        "net": "`$MAP`"
+      },
+      "strict": false,
       "transport": "base"
+    },
+ timeout:     {
+      "options": {
+        "active": false,
+        "ms": 30000
+      },
+      "optspec": {
+        "clearTimer": "`$FUNCTION`",
+        "setTimer": "`$FUNCTION`"
+      },
+      "strict": false,
+      "transport": "wrap"
     },
 
   }
@@ -56,12 +120,12 @@ class Config {
 
     entity: {
       
-      artist: {
-      },
-
-      image: {
-      },
-
+        artist: {
+        },
+  
+        image: {
+        },
+  
     }
   }
 
@@ -71,20 +135,28 @@ class Config {
       "fields": [
         {
           "name": "id",
-          "short": "Unique identifier for the artist",
-          "type": "`$STRING`"
+          "title": "Id",
+          "type": "`$STRING`",
+          "short": "Unique identifier for the artist"
         },
         {
           "name": "name",
-          "short": "Name of the artist",
-          "type": "`$STRING`"
+          "title": "Name",
+          "type": "`$STRING`",
+          "short": "Name of the artist"
         },
         {
           "name": "url",
+          "title": "Url",
+          "type": "`$STRING`",
           "short": "URL to the artist's profile or portfolio",
-          "type": "`$STRING`"
+          "format": "uri"
         }
       ],
+      "id": {
+        "field": "id",
+        "name": "id"
+      },
       "name": "artist",
       "op": {
         "list": {
@@ -92,39 +164,45 @@ class Config {
           "name": "list",
           "points": [
             {
-              "args": {
-                "query": [
-                  {
-                    "example": 1,
-                    "kind": "query",
-                    "name": "page",
-                    "orig": "page",
-                    "type": "`$INTEGER`"
-                  },
-                  {
-                    "example": 100,
-                    "kind": "query",
-                    "name": "page_size",
-                    "orig": "page_size",
-                    "type": "`$INTEGER`"
-                  }
-                ]
-              },
               "kind": "http",
               "method": "GET",
               "orig": "/artists",
+              "segments": [
+                {
+                  "lit": "artists"
+                }
+              ],
               "parts": [
                 "artists"
               ],
+              "rename": {},
+              "transform": {
+                "req": "`reqdata`",
+                "res": "`body.artists`"
+              },
+              "args": {
+                "query": [
+                  {
+                    "name": "page",
+                    "orig": "page",
+                    "type": "`$INTEGER`",
+                    "kind": "query",
+                    "example": 1
+                  },
+                  {
+                    "name": "page_size",
+                    "orig": "page_size",
+                    "type": "`$INTEGER`",
+                    "kind": "query",
+                    "example": 100
+                  }
+                ]
+              },
               "select": {
                 "exist": [
                   "page",
                   "page_size"
                 ]
-              },
-              "transform": {
-                "req": "`reqdata`",
-                "res": "`body.artists`"
               }
             }
           ]
@@ -138,39 +216,52 @@ class Config {
       "fields": [
         {
           "name": "artist",
+          "title": "Artist",
           "type": "`$OBJECT`"
         },
         {
           "name": "category",
-          "short": "Category of the image",
-          "type": "`$STRING`"
+          "title": "Category",
+          "type": "`$STRING`",
+          "short": "Category of the image"
         },
         {
           "name": "height",
-          "short": "Image height in pixels",
-          "type": "`$INTEGER`"
+          "title": "Height",
+          "type": "`$INTEGER`",
+          "short": "Image height in pixels"
         },
         {
           "name": "id",
-          "short": "Unique identifier for the image",
-          "type": "`$STRING`"
+          "title": "Id",
+          "type": "`$STRING`",
+          "short": "Unique identifier for the image"
         },
         {
           "name": "thumbnail",
+          "title": "Thumbnail",
+          "type": "`$STRING`",
           "short": "URL to the thumbnail version of the image",
-          "type": "`$STRING`"
+          "format": "uri"
         },
         {
           "name": "url",
+          "title": "Url",
+          "type": "`$STRING`",
           "short": "URL to the image",
-          "type": "`$STRING`"
+          "format": "uri"
         },
         {
           "name": "width",
-          "short": "Image width in pixels",
-          "type": "`$INTEGER`"
+          "title": "Width",
+          "type": "`$INTEGER`",
+          "short": "Image width in pixels"
         }
       ],
+      "id": {
+        "field": "id",
+        "name": "id"
+      },
       "name": "image",
       "op": {
         "list": {
@@ -178,46 +269,52 @@ class Config {
           "name": "list",
           "points": [
             {
-              "args": {
-                "query": [
-                  {
-                    "kind": "query",
-                    "name": "category",
-                    "orig": "category",
-                    "type": "`$STRING`"
-                  },
-                  {
-                    "example": 1,
-                    "kind": "query",
-                    "name": "page",
-                    "orig": "page",
-                    "type": "`$INTEGER`"
-                  },
-                  {
-                    "example": 30,
-                    "kind": "query",
-                    "name": "page_size",
-                    "orig": "page_size",
-                    "type": "`$INTEGER`"
-                  }
-                ]
-              },
               "kind": "http",
               "method": "GET",
               "orig": "/images",
+              "segments": [
+                {
+                  "lit": "images"
+                }
+              ],
               "parts": [
                 "images"
               ],
+              "rename": {},
+              "transform": {
+                "req": "`reqdata`",
+                "res": "`body.images`"
+              },
+              "args": {
+                "query": [
+                  {
+                    "name": "category",
+                    "orig": "category",
+                    "type": "`$STRING`",
+                    "kind": "query"
+                  },
+                  {
+                    "name": "page",
+                    "orig": "page",
+                    "type": "`$INTEGER`",
+                    "kind": "query",
+                    "example": 1
+                  },
+                  {
+                    "name": "page_size",
+                    "orig": "page_size",
+                    "type": "`$INTEGER`",
+                    "kind": "query",
+                    "example": 30
+                  }
+                ]
+              },
               "select": {
                 "exist": [
                   "category",
                   "page",
                   "page_size"
                 ]
-              },
-              "transform": {
-                "req": "`reqdata`",
-                "res": "`body.images`"
               }
             }
           ]
@@ -234,6 +331,7 @@ class Config {
 const config = new Config()
 
 export {
-  config
+  config,
+  FEATURE_PLUGINS,
 }
 

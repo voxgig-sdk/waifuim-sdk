@@ -1,4 +1,4 @@
-# GithubApi2 SDK
+# Waifuim SDK
 
 Waifu API client, generated from the OpenAPI spec.
 
@@ -14,7 +14,7 @@ Metadata kindly supplied by [www.freepublicapis.com](https://www.freepublicapis.
 
 > TypeScript, Python, PHP, Golang, Ruby, Lua SDKs, a CLI with an interactive REPL, and an MCP server for AI agents — all generated from one OpenAPI spec by [@voxgig/sdkgen](https://github.com/voxgig/sdkgen).
 
-> **Features:** `test` — opt-in,
+> **Features:** `undefined`, `undefined`, `undefined`, `undefined` — opt-in,
 > inactive until switched on, and configured per client. See the Features
 > section of any SDK README below for what each one does.
 
@@ -26,7 +26,7 @@ call directly, instead of assembling URL paths and query strings. Entities are
 support (`list`):
 
 ```ts
-const client = new GithubApi2SDK()
+const client = new WaifuimSDK()
 const items = await client.Artist().list()
 ```
 
@@ -44,7 +44,7 @@ network, and no credentials:
 ```ts
 // The offline mock starts EMPTY — seed it with the records the test needs.
 // Shape: { entity: { <entity-name>: { <id>: <record> } } }
-const client = GithubApi2SDK.test({
+const client = WaifuimSDK.test({
   entity: {
     artist: {
       test01: { id: 'test01' },
@@ -60,7 +60,7 @@ console.log(artists)
 ### Python
 
 ```python
-client = GithubApi2SDK.test()
+client = WaifuimSDK.test()
 artists = client.Artist().list()
 print(artists)
 ```
@@ -69,7 +69,7 @@ print(artists)
 
 ```php
 // Seed fixture data so offline calls resolve without a live server.
-$client = GithubApi2SDK::test([
+$client = WaifuimSDK::test([
     "entity" => ["artist" => ["test01" => []]],
 ]);
 $artists = $client->Artist()->list();
@@ -88,7 +88,7 @@ result, err := client.Artist(nil).List(
 
 ```ruby
 # Seed fixture data so offline calls resolve without a live server.
-client = GithubApi2SDK.test({
+client = WaifuimSDK.test({
   "entity" => { "artist" => { "test01" => {} } },
 })
 artists = client.Artist.list()
@@ -105,23 +105,23 @@ local results, err = client:Artist():list()
 
 | Language | Package | Install |
 | --- | --- | --- |
-| TypeScript | `@voxgig-sdk/github-api2` | publish pending — [install from git tag](https://github.com/voxgig-sdk/github-api2-sdk/releases) |
-| Python | `voxgig-sdk-github-api2` | publish pending — [install from git tag](https://github.com/voxgig-sdk/github-api2-sdk/releases) |
-| PHP | `voxgig-sdk/github-api2` | publish pending — [install from git tag](https://github.com/voxgig-sdk/github-api2-sdk/releases) |
-| Golang | `github.com/voxgig-sdk/github-api2-sdk/go` | `go get github.com/voxgig-sdk/github-api2-sdk/go@latest` |
-| Ruby | `voxgig-sdk-github-api2` | publish pending — [install from git tag](https://github.com/voxgig-sdk/github-api2-sdk/releases) |
-| Lua | `voxgig-sdk-github-api2` | publish pending — [install from git tag](https://github.com/voxgig-sdk/github-api2-sdk/releases) |
-| Go CLI | `github.com/voxgig-sdk/github-api2-sdk/go-cli` | `go install github.com/voxgig-sdk/github-api2-sdk/go-cli/cmd/github-api2@latest` |
-| Go MCP server | `github.com/voxgig-sdk/github-api2-sdk/go-mcp` | `go get github.com/voxgig-sdk/github-api2-sdk/go-mcp@latest` |
+| TypeScript | `@voxgig-sdk/waifuim-sdk` | publish pending — [install from git tag](https://github.com/voxgig-sdk/waifuim-sdk/tags) |
+| Python | `voxgig-sdk-waifuim-sdk` | publish pending — [install from git tag](https://github.com/voxgig-sdk/waifuim-sdk/tags) |
+| PHP | `voxgig-sdk/waifuim-sdk` | publish pending — [install from git tag](https://github.com/voxgig-sdk/waifuim-sdk/tags) |
+| Golang | `github.com/voxgig-sdk/waifuim-sdk/go` | `go get github.com/voxgig-sdk/waifuim-sdk/go@latest` |
+| Ruby | `voxgig-sdk-waifuim-sdk` | publish pending — [install from git tag](https://github.com/voxgig-sdk/waifuim-sdk/tags) |
+| Lua | `voxgig-sdk-waifuim-sdk` | publish pending — [install from git tag](https://github.com/voxgig-sdk/waifuim-sdk/tags) |
+| Go CLI | `github.com/voxgig-sdk/waifuim-sdk/go-cli` | `go install github.com/voxgig-sdk/waifuim-sdk/go-cli/cmd/waifuim@latest` |
+| Go MCP server | `github.com/voxgig-sdk/waifuim-sdk/go-mcp` | `go get github.com/voxgig-sdk/waifuim-sdk/go-mcp@latest` |
 
 ## Quickstart
 
 ### TypeScript
 
 ```ts
-import { GithubApi2SDK } from '@voxgig-sdk/github-api2'
+import { WaifuimSDK } from '@voxgig-sdk/waifuim-sdk'
 
-const client = new GithubApi2SDK()
+const client = new WaifuimSDK()
 
 // List all artists (returns ArtistEntity[] — .data() for the record)
 const artists = await client.Artist().list()
@@ -147,7 +147,7 @@ The generated MCP server exposes every operation in this SDK as an
 can call directly. Build and register it:
 
 ```bash
-cd go-mcp && go build -o github-api2-mcp .
+cd go-mcp && go build -o waifuim-mcp .
 ```
 
 Then add it to your agent's MCP config (Claude Desktop, Cursor, etc.):
@@ -155,8 +155,8 @@ Then add it to your agent's MCP config (Claude Desktop, Cursor, etc.):
 ```json
 {
   "mcpServers": {
-    "github-api2": {
-      "command": "/abs/path/to/github-api2-mcp"
+    "waifuim": {
+      "command": "/abs/path/to/waifuim-mcp"
     }
   }
 }
@@ -179,9 +179,9 @@ own list above for exactly which it supports.
 ### Python
 
 ```python
-from githubapi2_sdk import GithubApi2SDK
+from waifuim_sdk import WaifuimSDK
 
-client = GithubApi2SDK()
+client = WaifuimSDK()
 
 # List all artists (returns a list, raises on error)
 artists = client.Artist().list()
@@ -193,19 +193,19 @@ for artist in artists:
 
 ```php
 <?php
-require_once 'githubapi2_sdk.php';
+require_once 'waifuim_sdk.php';
 
-$client = new GithubApi2SDK();
+$client = new WaifuimSDK();
 
 // List all artists (returns an array; throws on error)
 $artists = $client->Artist()->list();
-print_r($artists);
+print_r(array_map(fn($item) => $item->data_get(), $artists));
 ```
 
 ### Golang
 
 ```go
-import sdk "github.com/voxgig-sdk/github-api2-sdk/go"
+import sdk "github.com/voxgig-sdk/waifuim-sdk/go"
 
 client := sdk.New()
 
@@ -220,9 +220,9 @@ fmt.Println(artists)
 ### Ruby
 
 ```ruby
-require_relative "GithubApi2_sdk"
+require_relative "Waifuim_sdk"
 
-client = GithubApi2SDK.new
+client = WaifuimSDK.new
 
 # List all artists (returns an Array; raises on error)
 artists = client.Artist.list
@@ -232,7 +232,7 @@ puts artists
 ### Lua
 
 ```lua
-local sdk = require("github-api2_sdk")
+local sdk = require("waifuim_sdk")
 
 local client = sdk.new()
 
@@ -340,7 +340,10 @@ forking the SDK.
 
 | Feature | Purpose |
 | --- | --- |
-| **TestFeature** | In-memory mock transport for testing without a live server |
+| **RatelimitFeature** | Rate limiting |
+| **RetryFeature** | Retry |
+| **TestFeature** | Test transport |
+| **TimeoutFeature** | Timeout |
 
 Pass custom features via the `extend` option at construction time.
 
@@ -351,7 +354,7 @@ customizable without forking any upstream tool:
 
 - **The model** (`.sdk/model/`) declares everything this project owns:
   package names, versions, active features, per-target settings. It is
-  written in [aontu](https://github.com/aontu-lang/aontu), a JSON-based
+  written in [aontu](https://aontu.dev), a JSON-based
   specification language designed for building ontologies: easy to edit
   by hand, and files unify rather than override, so small declarations
   compose into one model. Regeneration re-reads it every time.

@@ -1,7 +1,7 @@
-# github-api2-mcp
+# waifuim-mcp
 
-[MCP](https://modelcontextprotocol.io) server exposing the GithubApi2 SDK as
-two agent tools — `github-api2_list` and `github-api2_load` — built on the
+[MCP](https://modelcontextprotocol.io) server exposing the Waifuim SDK as
+two agent tools — `waifuim_list` and `waifuim_load` — built on the
 [official Go MCP SDK](https://github.com/modelcontextprotocol/go-sdk) and the
 sibling Go SDK at `../go`. Runs over **stdio** (default, for spawnable installs)
 or **streamable HTTP** (one shared server for several agents).
@@ -9,28 +9,28 @@ or **streamable HTTP** (one shared server for several agents).
 ## Examples
 
 ```sh
-# 1. Build a native binary (-> dist/<os>-<arch>/github-api2-mcp)
+# 1. Build a native binary (-> dist/<os>-<arch>/waifuim-mcp)
 make build
 
 # 2. Provide credentials via the environment
-export GITHUB_API2_APIKEY=sk_live_xxx
+export WAIFUIM_APIKEY=sk_live_xxx
 
 # 3a. Install into Claude Code over stdio (most common)
-claude mcp add --scope user github-api2 \
-  -- /absolute/path/to/github-api2-mcp -transport stdio
+claude mcp add --scope user waifuim \
+  -- /absolute/path/to/waifuim-mcp -transport stdio
 
 # 3b. …or run a shared HTTP server instead
-./github-api2-mcp -transport http -addr :8080
+./waifuim-mcp -transport http -addr :8080
 ```
 
 Tool-call arguments (what an agent sends):
 
 ```jsonc
-// github-api2_list: first page of records
+// waifuim_list: first page of records
 { "entity": "artist" }
 { "entity": "artist", "query": { } }
 
-// github-api2_load: one record by id
+// waifuim_load: one record by id
 { "entity": "artist", "query": { "id": 1 } }
 ```
 
@@ -43,25 +43,25 @@ Tool-call arguments (what an agent sends):
 1. **Build** the server from this `go-mcp/` directory:
 
    ```sh
-   make build          # -> dist/<os>-<arch>/github-api2-mcp
+   make build          # -> dist/<os>-<arch>/waifuim-mcp
    ```
 
 2. **Set your API key:**
 
    ```sh
-   export GITHUB_API2_APIKEY=sk_live_xxx
+   export WAIFUIM_APIKEY=sk_live_xxx
    ```
 
 3. **Install it into Claude Code** (stdio transport):
 
    ```sh
-   claude mcp add --scope user github-api2 \
-     -- "$PWD"/dist/*/github-api2-mcp -transport stdio
+   claude mcp add --scope user waifuim \
+     -- "$PWD"/dist/*/waifuim-mcp -transport stdio
    ```
 
-4. **Restart Claude Code.** The `github-api2_list` and `github-api2_load` tools now appear
-   in new sessions. Ask the agent to *"list artist using github-api2"*
-   and it calls `github-api2_list` with `{"entity":"artist"}`.
+4. **Restart Claude Code.** The `waifuim_list` and `waifuim_load` tools now appear
+   in new sessions. Ask the agent to *"list artist using waifuim"*
+   and it calls `waifuim_list` with `{"entity":"artist"}`.
 
 ## How-to guides
 
@@ -70,8 +70,8 @@ Tool-call arguments (what an agent sends):
 Configuration is read from the environment — nothing is written to disk:
 
 ```sh
-export GITHUB_API2_APIKEY=sk_live_xxx            # API key
-export GITHUB_API2_BASE=https://api.example.com  # optional: override the API base URL
+export WAIFUIM_APIKEY=sk_live_xxx            # API key
+export WAIFUIM_BASE=https://api.example.com  # optional: override the API base URL
 ```
 
 Set these in the shell that launches the server (or in the `claude mcp add`
@@ -80,13 +80,13 @@ environment) so every tool call is authenticated.
 ### Run as a shared HTTP server
 
 ```sh
-./github-api2-mcp -transport http -addr :8080
+./waifuim-mcp -transport http -addr :8080
 ```
 
 Streamable HTTP lets several agents share one running process; stdio (the
 default) spawns a fresh process per client.
 
-### Call the `github-api2_list` tool
+### Call the `waifuim_list` tool
 
 Args: `entity` (required), `query` (optional filter map). Returns the first
 page of records as JSON:
@@ -95,7 +95,7 @@ page of records as JSON:
 { "entity": "artist" }
 ```
 
-### Call the `github-api2_load` tool
+### Call the `waifuim_load` tool
 
 Args: `entity` (required), `query` = `{"id":N}` (required). Returns the single
 record as JSON:
@@ -117,8 +117,8 @@ make build-all   # linux/darwin/windows x amd64/arm64, under dist/<os>-<arch>/
 
 | Tool | Args | Returns |
 |------|------|---------|
-| `github-api2_list` | `entity` (required), `query` (optional map) | First page of records as JSON |
-| `github-api2_load` | `entity` (required), `query` = `{id:N}` | Single record as JSON |
+| `waifuim_list` | `entity` (required), `query` (optional map) | First page of records as JSON |
+| `waifuim_load` | `entity` (required), `query` = `{id:N}` | Single record as JSON |
 
 On error, a tool returns an MCP error result (`isError: true`) whose text is the
 failure message (e.g. unknown entity, or an API error).
@@ -146,8 +146,8 @@ JSON schemas are emitted by the SDK from the `Args` struct's `json` /
 
 | Variable | Purpose |
 |----------|---------|
-| `GITHUB_API2_APIKEY` | API key sent with every request. |
-| `GITHUB_API2_BASE` | Optional override of the API base URL. |
+| `WAIFUIM_APIKEY` | API key sent with every request. |
+| `WAIFUIM_BASE` | Optional override of the API base URL. |
 
 ### Entities
 
@@ -158,7 +158,7 @@ artist | image
 ### Smoke test via HTTP (raw JSON-RPC)
 
 ```sh
-./github-api2-mcp -transport http -addr :18080 &
+./waifuim-mcp -transport http -addr :18080 &
 
 # initialize, grab the session id
 curl -sN -X POST http://localhost:18080 \
@@ -173,7 +173,7 @@ curl -sN -X POST http://localhost:18080 \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json, text/event-stream' \
   -H "Mcp-Session-Id: $SESSION" \
-  -d '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"github-api2_load","arguments":{"entity":"artist","query":{"id":1}}}}'
+  -d '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"waifuim_load","arguments":{"entity":"artist","query":{"id":1}}}}'
 ```
 
 ## Explanation

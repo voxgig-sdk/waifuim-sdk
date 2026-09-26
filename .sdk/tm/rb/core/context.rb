@@ -1,4 +1,4 @@
-# GithubApi2 SDK context
+# Waifuim SDK context
 
 require_relative '../utility/struct/voxgig_struct'
 require_relative 'control'
@@ -9,7 +9,7 @@ require_relative 'response'
 require_relative 'error'
 require_relative 'helpers'
 
-class GithubApi2Context
+class WaifuimContext
   attr_accessor :id, :out, :client, :utility, :ctrl, :meta, :config,
                 :entopts, :options, :entity, :shared, :opmap,
                 :data, :reqdata, :match, :reqmatch, :point,
@@ -20,59 +20,59 @@ class GithubApi2Context
     @id = "C#{rand(10000000..99999999)}"
     @out = {}
 
-    @client = GithubApi2Helpers.get_ctx_prop(ctxmap, "client") || basectx&.client
-    @utility = GithubApi2Helpers.get_ctx_prop(ctxmap, "utility") || basectx&.utility
+    @client = WaifuimHelpers.get_ctx_prop(ctxmap, "client") || basectx&.client
+    @utility = WaifuimHelpers.get_ctx_prop(ctxmap, "utility") || basectx&.utility
 
-    @ctrl = GithubApi2Control.new
-    ctrl_raw = GithubApi2Helpers.get_ctx_prop(ctxmap, "ctrl")
+    @ctrl = WaifuimControl.new
+    ctrl_raw = WaifuimHelpers.get_ctx_prop(ctxmap, "ctrl")
     if ctrl_raw.is_a?(Hash)
       @ctrl.throw_err = ctrl_raw["throw"] if ctrl_raw.key?("throw")
       @ctrl.explain = ctrl_raw["explain"] if ctrl_raw["explain"].is_a?(Hash)
       @ctrl.actor = ctrl_raw["actor"] if ctrl_raw.key?("actor")
       @ctrl.paging = ctrl_raw["paging"] if ctrl_raw["paging"].is_a?(Hash)
-    elsif basectx&.ctrl
+    elsif basectx&.ctrl && WaifuimHelpers.get_ctx_prop(ctxmap, "opname").nil?
       @ctrl = basectx.ctrl
     end
 
-    m = GithubApi2Helpers.get_ctx_prop(ctxmap, "meta")
+    m = WaifuimHelpers.get_ctx_prop(ctxmap, "meta")
     @meta = m.is_a?(Hash) ? m : (basectx&.meta || {})
 
-    cfg = GithubApi2Helpers.get_ctx_prop(ctxmap, "config")
+    cfg = WaifuimHelpers.get_ctx_prop(ctxmap, "config")
     @config = cfg.is_a?(Hash) ? cfg : basectx&.config
 
-    eo = GithubApi2Helpers.get_ctx_prop(ctxmap, "entopts")
+    eo = WaifuimHelpers.get_ctx_prop(ctxmap, "entopts")
     @entopts = eo.is_a?(Hash) ? eo : basectx&.entopts
 
-    o = GithubApi2Helpers.get_ctx_prop(ctxmap, "options")
+    o = WaifuimHelpers.get_ctx_prop(ctxmap, "options")
     @options = o.is_a?(Hash) ? o : basectx&.options
 
-    e = GithubApi2Helpers.get_ctx_prop(ctxmap, "entity")
+    e = WaifuimHelpers.get_ctx_prop(ctxmap, "entity")
     @entity = e || basectx&.entity
 
-    s = GithubApi2Helpers.get_ctx_prop(ctxmap, "shared")
+    s = WaifuimHelpers.get_ctx_prop(ctxmap, "shared")
     @shared = s.is_a?(Hash) ? s : basectx&.shared
 
-    om = GithubApi2Helpers.get_ctx_prop(ctxmap, "opmap")
+    om = WaifuimHelpers.get_ctx_prop(ctxmap, "opmap")
     @opmap = om.is_a?(Hash) ? om : (basectx&.opmap || {})
 
-    @data = GithubApi2Helpers.to_map(GithubApi2Helpers.get_ctx_prop(ctxmap, "data")) || {}
-    @reqdata = GithubApi2Helpers.to_map(GithubApi2Helpers.get_ctx_prop(ctxmap, "reqdata")) || {}
-    @match = GithubApi2Helpers.to_map(GithubApi2Helpers.get_ctx_prop(ctxmap, "match")) || {}
-    @reqmatch = GithubApi2Helpers.to_map(GithubApi2Helpers.get_ctx_prop(ctxmap, "reqmatch")) || {}
+    @data = WaifuimHelpers.to_map(WaifuimHelpers.get_ctx_prop(ctxmap, "data")) || {}
+    @reqdata = WaifuimHelpers.to_map(WaifuimHelpers.get_ctx_prop(ctxmap, "reqdata")) || {}
+    @match = WaifuimHelpers.to_map(WaifuimHelpers.get_ctx_prop(ctxmap, "match")) || {}
+    @reqmatch = WaifuimHelpers.to_map(WaifuimHelpers.get_ctx_prop(ctxmap, "reqmatch")) || {}
 
-    pt = GithubApi2Helpers.get_ctx_prop(ctxmap, "point")
+    pt = WaifuimHelpers.get_ctx_prop(ctxmap, "point")
     @point = pt.is_a?(Hash) ? pt : basectx&.point
 
-    sp = GithubApi2Helpers.get_ctx_prop(ctxmap, "spec")
-    @spec = sp.is_a?(GithubApi2Spec) ? sp : basectx&.spec
+    sp = WaifuimHelpers.get_ctx_prop(ctxmap, "spec")
+    @spec = sp.is_a?(WaifuimSpec) ? sp : basectx&.spec
 
-    r = GithubApi2Helpers.get_ctx_prop(ctxmap, "result")
-    @result = r.is_a?(GithubApi2Result) ? r : basectx&.result
+    r = WaifuimHelpers.get_ctx_prop(ctxmap, "result")
+    @result = r.is_a?(WaifuimResult) ? r : basectx&.result
 
-    rp = GithubApi2Helpers.get_ctx_prop(ctxmap, "response")
-    @response = rp.is_a?(GithubApi2Response) ? rp : basectx&.response
+    rp = WaifuimHelpers.get_ctx_prop(ctxmap, "response")
+    @response = rp.is_a?(WaifuimResponse) ? rp : basectx&.response
 
-    opname = GithubApi2Helpers.get_ctx_prop(ctxmap, "opname") || ""
+    opname = WaifuimHelpers.get_ctx_prop(ctxmap, "opname") || ""
     @op = resolve_op(opname)
   end
 
@@ -84,7 +84,7 @@ class GithubApi2Context
     entname = @entity&.respond_to?(:get_name) ? @entity.get_name : "_"
     cache_key = "#{entname}:#{opname}"
     return @opmap[cache_key] if @opmap[cache_key]
-    return GithubApi2Operation.new({}) if opname.empty?
+    return WaifuimOperation.new({}) if opname.empty?
 
     opcfg = VoxgigStruct.getpath(@config, "entity.#{entname}.op.#{opname}")
 
@@ -96,7 +96,7 @@ class GithubApi2Context
       points = t if t.is_a?(Array)
     end
 
-    op = GithubApi2Operation.new({
+    op = WaifuimOperation.new({
       "entity" => entname,
       "name" => opname,
       "input" => input,
@@ -107,6 +107,6 @@ class GithubApi2Context
   end
 
   def make_error(code, msg)
-    GithubApi2Error.new(code, msg, self)
+    WaifuimError.new(code, msg, self)
   end
 end

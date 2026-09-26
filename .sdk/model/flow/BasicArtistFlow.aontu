@@ -1,0 +1,22 @@
+# BasicArtistFlow
+
+main: kit: flow: BasicArtistFlow:
+{
+  entity: "artist",
+  kind: "basic",
+  name: "BasicArtistFlow",
+  step: [
+    {
+      o: "list",
+      v: [
+        {
+          apply: "ItemExists",
+          def: {
+            ref: "artist_ref01"
+          }
+        }
+      ]
+    }
+  ],
+  "key$": "BasicArtistFlow"
+}

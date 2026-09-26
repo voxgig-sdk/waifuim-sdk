@@ -1,4 +1,4 @@
--- GithubApi2 SDK utility: prepare_headers
+-- Waifuim SDK utility: prepare_headers
 
 local vs = require("utility.struct.struct")
 

@@ -1,7 +1,7 @@
-# GithubApi2 SDK utility: make_context
+# Waifuim SDK utility: make_context
 require_relative '../core/context'
-module GithubApi2Utilities
+module WaifuimUtilities
   MakeContext = ->(ctxmap, basectx) {
-    GithubApi2Context.new(ctxmap, basectx)
+    WaifuimContext.new(ctxmap, basectx)
   }
 end

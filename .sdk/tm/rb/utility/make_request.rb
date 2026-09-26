@@ -1,14 +1,14 @@
-# GithubApi2 SDK utility: make_request
+# Waifuim SDK utility: make_request
 require_relative '../core/response'
 require_relative '../core/result'
-module GithubApi2Utilities
+module WaifuimUtilities
   MakeRequest = ->(ctx) {
     return ctx.out["request"], nil if ctx.out["request"]
 
     spec = ctx.spec
     utility = ctx.utility
-    response = GithubApi2Response.new({})
-    result = GithubApi2Result.new({})
+    response = WaifuimResponse.new({})
+    result = WaifuimResult.new({})
     ctx.result = result
 
     return nil, ctx.make_error("request_no_spec", "Expected context spec property to be defined.") unless spec
@@ -30,9 +30,9 @@ module GithubApi2Utilities
     if fetch_err
       response.err = fetch_err
     elsif fetched.nil?
-      response = GithubApi2Response.new({ "err" => ctx.make_error("request_no_response", "response: undefined") })
+      response = WaifuimResponse.new({ "err" => ctx.make_error("request_no_response", "response: undefined") })
     elsif fetched.is_a?(Hash)
-      response = GithubApi2Response.new(fetched)
+      response = WaifuimResponse.new(fetched)
     else
       response.err = ctx.make_error("request_invalid_response", "response: invalid type")
     end

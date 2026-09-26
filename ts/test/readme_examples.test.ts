@@ -30,10 +30,10 @@ import * as Path from 'node:path'
 import { createRequire } from 'node:module'
 import { spawnSync } from 'node:child_process'
 
-import { GithubApi2SDK } from '..'
+import { WaifuimSDK } from '..'
 
 
-const SDK_NAME = 'GithubApi2SDK'
+const SDK_NAME = 'WaifuimSDK'
 
 // A fixture for every entity, so list()/load() resolve offline with no
 // network. Snippet client construction is rewritten to seed this.
@@ -104,8 +104,8 @@ function isIllustrationShape(code: string): boolean {
 // gate rewrites to seeded test mode and runs.
 function isRunnable(code: string): boolean {
   return (
-    /new\s+GithubApi2SDK\b/.test(code) ||
-    /\bGithubApi2SDK\.test\b/.test(code) ||
+    /new\s+WaifuimSDK\b/.test(code) ||
+    /\bWaifuimSDK\.test\b/.test(code) ||
     /\bclient\s*\./.test(code)
   )
 }
@@ -242,8 +242,8 @@ function typeCheckBlocks(blocks: string[], key: string): {
 // that reference `client` without constructing one a shared seeded client.
 function rewriteForRun(code: string): string {
   let out = stripImports(code)
-  out = out.replace(/new\s+GithubApi2SDK\s*\([^)]*\)/g, () => SEEDED_CTOR)
-  out = out.replace(/GithubApi2SDK\.test\s*\([^)]*\)/g, () => SEEDED_CTOR)
+  out = out.replace(/new\s+WaifuimSDK\s*\([^)]*\)/g, () => SEEDED_CTOR)
+  out = out.replace(/WaifuimSDK\.test\s*\([^)]*\)/g, () => SEEDED_CTOR)
   if (/\bclient\b/.test(out) && !/\b(?:const|let|var)\s+client\b/.test(out)) {
     out = 'const client = ' + SEEDED_CTOR + '\n' + out
   }
@@ -292,7 +292,7 @@ async function executeBlocks(blocks: string[]): Promise<string[]> {
     }
 
     try {
-      await runner(GithubApi2SDK, silentConsole)
+      await runner(WaifuimSDK, silentConsole)
     } catch (err: any) {
       const msg = String((err && err.message) || err)
       // Tolerate the one expected domain error: no fixture seeded for the

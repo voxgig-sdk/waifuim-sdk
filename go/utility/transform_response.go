@@ -1,9 +1,9 @@
 package utility
 
 import (
-	vs "github.com/voxgig-sdk/github-api2-sdk/go/utility/struct"
+	vs "github.com/voxgig-sdk/waifuim-sdk/go/utility/struct"
 
-	"github.com/voxgig-sdk/github-api2-sdk/go/core"
+	"github.com/voxgig-sdk/waifuim-sdk/go/core"
 )
 
 func transformResponseUtil(ctx *core.Context) any {
@@ -29,7 +29,12 @@ func transformResponseUtil(ctx *core.Context) any {
 		return nil
 	}
 
-	resdata := vs.Transform(map[string]any{
+	// Transform gained an error return in struct go 0.1.3. Both callers
+	// (makeResponse, makeResult) DISCARD this function's return value, so an
+	// error handed back that way would vanish. The convention they do honour
+	// is result.Err — makeResponse sets result.Ok only when it is nil, and
+	// GraphqlErrors reports the same way — so report there.
+	resdata, terr := vs.Transform(map[string]any{
 		"ok":         result.Ok,
 		"status":     result.Status,
 		"statusText": result.StatusText,
@@ -39,6 +44,12 @@ func transformResponseUtil(ctx *core.Context) any {
 		"resdata":    result.Resdata,
 		"resmatch":   result.Resmatch,
 	}, resform)
+
+	if terr != nil {
+		result.Err = ctx.MakeError("resform", "resform: "+terr.Error())
+		result.Ok = false
+		return nil
+	}
 
 	result.Resdata = resdata
 	return resdata

@@ -1,6 +1,6 @@
-# GithubApi2 SDK utility: prepare_headers
+# Waifuim SDK utility: prepare_headers
 require_relative 'struct/voxgig_struct'
-module GithubApi2Utilities
+module WaifuimUtilities
   PrepareHeaders = ->(ctx) {
     options = ctx.client.options_map
     headers = VoxgigStruct.getprop(options, "headers")

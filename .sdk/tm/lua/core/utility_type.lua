@@ -1,4 +1,4 @@
--- GithubApi2 SDK utility type
+-- Waifuim SDK utility type
 
 local Utility = {}
 Utility.__index = Utility

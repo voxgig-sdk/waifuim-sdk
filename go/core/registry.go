@@ -4,9 +4,15 @@ var UtilityRegistrar func(u *Utility)
 
 var NewBaseFeatureFunc func() Feature
 
+var NewRatelimitFeatureFunc func() Feature
+
+var NewRetryFeatureFunc func() Feature
+
 var NewTestFeatureFunc func() Feature
 
-var NewArtistEntityFunc func(client *GithubApi2SDK, entopts map[string]any) GithubApi2Entity
+var NewTimeoutFeatureFunc func() Feature
 
-var NewImageEntityFunc func(client *GithubApi2SDK, entopts map[string]any) GithubApi2Entity
+var NewArtistEntityFunc func(client *WaifuimSDK, entopts map[string]any) WaifuimEntity
+
+var NewImageEntityFunc func(client *WaifuimSDK, entopts map[string]any) WaifuimEntity
 

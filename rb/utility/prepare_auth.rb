@@ -1,6 +1,6 @@
-# GithubApi2 SDK utility: prepare_auth
+# Waifuim SDK utility: prepare_auth
 require_relative 'struct/voxgig_struct'
-module GithubApi2Utilities
+module WaifuimUtilities
   HEADER_AUTH = "authorization"
   OPTION_APIKEY = "apikey"
   NOT_FOUND = "__NOTFOUND__"

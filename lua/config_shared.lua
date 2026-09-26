@@ -1,4 +1,4 @@
--- GithubApi2 SDK shared configuration
+-- Waifuim SDK shared configuration
 
 local make_config = require("config")
 

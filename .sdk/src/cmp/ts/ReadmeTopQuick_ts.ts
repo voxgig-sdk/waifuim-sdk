@@ -1,5 +1,5 @@
 
-import { cmp, Content, isAuthActive, isHttpBasicAuth, packageName, envName, entityIdField, entityOps, opRequestShape, safeVarName, exampleVarName, jsKey, matchArg, idLiteral } from '@voxgig/sdkgen'
+import { cmp, Content, isAuthActive, isHttpBasicAuth, packageName, envName, entityIdField, entityOps, opRequestShape, safeVarName, exampleVarName, jsKey, matchArg, idLiteral , serverVariables} from '@voxgig/sdkgen'
 
 import {
   KIT,
@@ -10,11 +10,6 @@ import {
 import { exampleValue } from './utility_ts'
 
 
-// A `list()` on a NESTED entity needs its parent path params. The
-// quickstart used to emit `client.Moon().list()` for an entity at
-// `/planet/{planet_id}/moon`, which 404s against a live server from a
-// half-built URL — indistinguishable from "no such record". The model
-// already marks those params `reqd: true`; matchArg renders exactly them.
 function listMatchArg(ent: any): string {
   const idF = entityIdField(ent)
   return matchArg('ts', ent, 'list', idF, idLiteral(ent, 'list', idF))
@@ -28,10 +23,24 @@ const ReadmeTopQuick = cmp(function ReadmeTopQuick(props: any) {
   const exampleEntity = Object.values(entity).find((e: any) => e.active !== false) as any
 
   const authActive = isAuthActive(model)
-  const ctor = authActive
-    ? `new ${model.const.Name}SDK({\n  apikey: process.env.${envName(model)}_APIKEY,${
-      isHttpBasicAuth(model) ? `\n  secret: process.env.${envName(model)}_SECRET,` : ''}\n})`
-    : `new ${model.const.Name}SDK()`
+
+  // Server variables (a templated server URL) are REQUIRED at construction
+  // - makeOptions refuses rather than request a URL with a literal
+  // {account_id} in it - so a quickstart that omits them is a quickstart
+  // that throws on its first line.
+  const svarLines = serverVariables(model)
+    .map((v: any) => `\n    ${v.name}: '<${v.name}>',`).join('')
+  const serverField = '' === svarLines ? '' :
+    `\n  // Required: this API's server URL is templated on these.\n  server: {${svarLines}\n  },`
+
+  const ctorFields = (authActive
+    ? `\n  apikey: process.env.${envName(model)}_APIKEY,${
+      isHttpBasicAuth(model) ? `\n  secret: process.env.${envName(model)}_SECRET,` : ''}`
+    : '') + serverField
+
+  const ctor = '' === ctorFields
+    ? `new ${model.const.Name}SDK()`
+    : `new ${model.const.Name}SDK({${ctorFields}\n})`
 
   Content(`\`\`\`ts
 import { ${model.const.Name}SDK } from '${packageName(model, target.name)}'
@@ -73,9 +82,6 @@ for (const ${eVar} of ${eVar}s) {
       const neVar = exampleVarName(neName.toLowerCase(), 'ts')
       const loadOp = nestedEntity.op && nestedEntity.op.load
 
-      // Every REQUIRED load-match key (parent keys first, own id last) — the
-      // same shape that generates <Name>LoadMatch, so the example
-      // type-checks.
       const neIdF = entityIdField(nestedEntity)
       const neMatchLines = opRequestShape(nestedEntity, 'load').items
         .filter((it: any) => !it.optional || it.name === neIdF)
@@ -95,9 +101,6 @@ console.log(${neVar})
       hasCall = true
     }
 
-    // Fallback: APIs with only `load` (no list, no nested) — most public
-    // read-only services. Still show one concrete call. `load()` with no
-    // match is always valid (the match arg is optional).
     if (!hasCall && opnames.includes('load')) {
       Content(`// Load ${eName.toLowerCase()} data (returns a ${eName})
 const ${eVar} = await client.${eName}().load()

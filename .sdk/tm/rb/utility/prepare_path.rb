@@ -1,6 +1,6 @@
-# GithubApi2 SDK utility: prepare_path
+# Waifuim SDK utility: prepare_path
 require_relative 'struct/voxgig_struct'
-module GithubApi2Utilities
+module WaifuimUtilities
   PreparePath = ->(ctx) {
     point = ctx.point
     parts = []

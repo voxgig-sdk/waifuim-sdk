@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-// GithubApi2 SDK configuration
+// Waifuim SDK configuration
 
-class GithubApi2Config
+class WaifuimConfig
 {
     /** @var array<string,mixed>|null */
     private static ?array $shared_config = null;
@@ -32,17 +32,71 @@ class GithubApi2Config
     {
         return [
             "main" => [
-                "name" => "GithubApi2",
-                "slug" => "github-api2",
+                "name" => "Waifuim",
+                "slug" => "waifuim",
                 "version" => "0.0.1",
                 "target" => "php",
             ],
             "feature" => [
+                "ratelimit" => [
+          'options' => [
+            'active' => false,
+            'burst' => 5,
+            'rate' => 5,
+          ],
+          'optspec' => [
+            'now' => '`$FUNCTION`',
+            'sleep' => '`$FUNCTION`',
+          ],
+          'strict' => false,
+          'transport' => 'wrap',
+        ],
+                "retry" => [
+          'options' => [
+            'active' => false,
+            'factor' => 2,
+            'maxDelay' => 2000,
+            'minDelay' => 50,
+            'retries' => 2,
+            'statuses' => [
+              408,
+              425,
+              429,
+              500,
+              502,
+              503,
+              504,
+            ],
+          ],
+          'optspec' => [
+            'jitter' => '`$BOOLEAN`',
+            'sleep' => '`$FUNCTION`',
+          ],
+          'strict' => false,
+          'transport' => 'wrap',
+        ],
                 "test" => [
           'options' => [
             'active' => false,
           ],
+          'optspec' => [
+            'entity' => '`$MAP`',
+            'net' => '`$MAP`',
+          ],
+          'strict' => false,
           'transport' => 'base',
+        ],
+                "timeout" => [
+          'options' => [
+            'active' => false,
+            'ms' => 30000,
+          ],
+          'optspec' => [
+            'clearTimer' => '`$FUNCTION`',
+            'setTimer' => '`$FUNCTION`',
+          ],
+          'strict' => false,
+          'transport' => 'wrap',
         ],
             ],
             "options" => [
@@ -60,19 +114,27 @@ class GithubApi2Config
           'fields' => [
             [
               'name' => 'id',
-              'short' => 'Unique identifier for the artist',
+              'title' => 'Id',
               'type' => '`$STRING`',
+              'short' => 'Unique identifier for the artist',
             ],
             [
               'name' => 'name',
-              'short' => 'Name of the artist',
+              'title' => 'Name',
               'type' => '`$STRING`',
+              'short' => 'Name of the artist',
             ],
             [
               'name' => 'url',
-              'short' => 'URL to the artist\'s profile or portfolio',
+              'title' => 'Url',
               'type' => '`$STRING`',
+              'short' => 'URL to the artist\'s profile or portfolio',
+              'format' => 'uri',
             ],
+          ],
+          'id' => [
+            'field' => 'id',
+            'name' => 'id',
           ],
           'name' => 'artist',
           'op' => [
@@ -81,39 +143,45 @@ class GithubApi2Config
               'name' => 'list',
               'points' => [
                 [
-                  'args' => [
-                    'query' => [
-                      [
-                        'example' => 1,
-                        'kind' => 'query',
-                        'name' => 'page',
-                        'orig' => 'page',
-                        'type' => '`$INTEGER`',
-                      ],
-                      [
-                        'example' => 100,
-                        'kind' => 'query',
-                        'name' => 'page_size',
-                        'orig' => 'page_size',
-                        'type' => '`$INTEGER`',
-                      ],
-                    ],
-                  ],
                   'kind' => 'http',
                   'method' => 'GET',
                   'orig' => '/artists',
+                  'segments' => [
+                    [
+                      'lit' => 'artists',
+                    ],
+                  ],
                   'parts' => [
                     'artists',
+                  ],
+                  'rename' => [],
+                  'transform' => [
+                    'req' => '`reqdata`',
+                    'res' => '`body.artists`',
+                  ],
+                  'args' => [
+                    'query' => [
+                      [
+                        'name' => 'page',
+                        'orig' => 'page',
+                        'type' => '`$INTEGER`',
+                        'kind' => 'query',
+                        'example' => 1,
+                      ],
+                      [
+                        'name' => 'page_size',
+                        'orig' => 'page_size',
+                        'type' => '`$INTEGER`',
+                        'kind' => 'query',
+                        'example' => 100,
+                      ],
+                    ],
                   ],
                   'select' => [
                     'exist' => [
                       'page',
                       'page_size',
                     ],
-                  ],
-                  'transform' => [
-                    'req' => '`reqdata`',
-                    'res' => '`body.artists`',
                   ],
                 ],
               ],
@@ -127,38 +195,51 @@ class GithubApi2Config
           'fields' => [
             [
               'name' => 'artist',
+              'title' => 'Artist',
               'type' => '`$OBJECT`',
             ],
             [
               'name' => 'category',
-              'short' => 'Category of the image',
+              'title' => 'Category',
               'type' => '`$STRING`',
+              'short' => 'Category of the image',
             ],
             [
               'name' => 'height',
-              'short' => 'Image height in pixels',
+              'title' => 'Height',
               'type' => '`$INTEGER`',
+              'short' => 'Image height in pixels',
             ],
             [
               'name' => 'id',
-              'short' => 'Unique identifier for the image',
+              'title' => 'Id',
               'type' => '`$STRING`',
+              'short' => 'Unique identifier for the image',
             ],
             [
               'name' => 'thumbnail',
-              'short' => 'URL to the thumbnail version of the image',
+              'title' => 'Thumbnail',
               'type' => '`$STRING`',
+              'short' => 'URL to the thumbnail version of the image',
+              'format' => 'uri',
             ],
             [
               'name' => 'url',
-              'short' => 'URL to the image',
+              'title' => 'Url',
               'type' => '`$STRING`',
+              'short' => 'URL to the image',
+              'format' => 'uri',
             ],
             [
               'name' => 'width',
-              'short' => 'Image width in pixels',
+              'title' => 'Width',
               'type' => '`$INTEGER`',
+              'short' => 'Image width in pixels',
             ],
+          ],
+          'id' => [
+            'field' => 'id',
+            'name' => 'id',
           ],
           'name' => 'image',
           'op' => [
@@ -167,35 +248,45 @@ class GithubApi2Config
               'name' => 'list',
               'points' => [
                 [
-                  'args' => [
-                    'query' => [
-                      [
-                        'kind' => 'query',
-                        'name' => 'category',
-                        'orig' => 'category',
-                        'type' => '`$STRING`',
-                      ],
-                      [
-                        'example' => 1,
-                        'kind' => 'query',
-                        'name' => 'page',
-                        'orig' => 'page',
-                        'type' => '`$INTEGER`',
-                      ],
-                      [
-                        'example' => 30,
-                        'kind' => 'query',
-                        'name' => 'page_size',
-                        'orig' => 'page_size',
-                        'type' => '`$INTEGER`',
-                      ],
-                    ],
-                  ],
                   'kind' => 'http',
                   'method' => 'GET',
                   'orig' => '/images',
+                  'segments' => [
+                    [
+                      'lit' => 'images',
+                    ],
+                  ],
                   'parts' => [
                     'images',
+                  ],
+                  'rename' => [],
+                  'transform' => [
+                    'req' => '`reqdata`',
+                    'res' => '`body.images`',
+                  ],
+                  'args' => [
+                    'query' => [
+                      [
+                        'name' => 'category',
+                        'orig' => 'category',
+                        'type' => '`$STRING`',
+                        'kind' => 'query',
+                      ],
+                      [
+                        'name' => 'page',
+                        'orig' => 'page',
+                        'type' => '`$INTEGER`',
+                        'kind' => 'query',
+                        'example' => 1,
+                      ],
+                      [
+                        'name' => 'page_size',
+                        'orig' => 'page_size',
+                        'type' => '`$INTEGER`',
+                        'kind' => 'query',
+                        'example' => 30,
+                      ],
+                    ],
                   ],
                   'select' => [
                     'exist' => [
@@ -203,10 +294,6 @@ class GithubApi2Config
                       'page',
                       'page_size',
                     ],
-                  ],
-                  'transform' => [
-                    'req' => '`reqdata`',
-                    'res' => '`body.images`',
                   ],
                 ],
               ],
@@ -224,6 +311,6 @@ class GithubApi2Config
     public static function make_feature(string $name)
     {
         require_once __DIR__ . '/features.php';
-        return GithubApi2Features::make_feature($name);
+        return WaifuimFeatures::make_feature($name);
     }
 }

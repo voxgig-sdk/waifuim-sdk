@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-// GithubApi2 SDK utility: clean
+// Waifuim SDK utility: clean
 
-class GithubApi2Clean
+class WaifuimClean
 {
-    public static function call(GithubApi2Context $ctx, mixed $val): mixed
+    public static function call(WaifuimContext $ctx, mixed $val): mixed
     {
         return $val;
     }

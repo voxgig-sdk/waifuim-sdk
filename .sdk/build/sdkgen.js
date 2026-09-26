@@ -5,7 +5,7 @@ const config = {
   root: __dirname+'/../dist/Root.js',
   folder: __dirname+'/../..',
   meta: {
-    name: 'github-api2'
+    name: 'waifuim'
   },
   model: {
     folder: __dirname+'/../model',

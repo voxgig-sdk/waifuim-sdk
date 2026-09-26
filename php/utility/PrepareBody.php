@@ -1,14 +1,20 @@
 <?php
 declare(strict_types=1);
 
-// GithubApi2 SDK utility: prepare_body
+// Waifuim SDK utility: prepare_body
 
-class GithubApi2PrepareBody
+class WaifuimPrepareBody
 {
-    public static function call(GithubApi2Context $ctx): mixed
+    public static function call(WaifuimContext $ctx): mixed
     {
         if ($ctx->op->input === 'data') {
-            return ($ctx->utility->transform_request)($ctx);
+            $body = ($ctx->utility->transform_request)($ctx);
+            // PHP cannot tell an empty map from an empty list, and this
+            // vendored struct answers [] where the canonical transform
+            // answers NO VALUE for a reference that resolves to nothing -
+            // collapse both to "no body" (the shared corpus pins the
+            // missing-reference case to null).
+            return (is_array($body) && 0 === count($body)) ? null : $body;
         }
         return null;
     }

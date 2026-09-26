@@ -1,4 +1,4 @@
--- GithubApi2 SDK utility: clean
+-- Waifuim SDK utility: clean
 
 local function clean_util(ctx, val)
   return val

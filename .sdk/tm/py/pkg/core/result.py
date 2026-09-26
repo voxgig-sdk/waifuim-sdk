@@ -1,10 +1,10 @@
-# GithubApi2 SDK result
+# Waifuim SDK result
 
 from __future__ import annotations
 from projectname_sdk.utility.voxgig_struct import voxgig_struct as vs
 
 
-class GithubApi2Result:
+class WaifuimResult:
     def __init__(self, resmap=None):
         if resmap is None:
             resmap = {}

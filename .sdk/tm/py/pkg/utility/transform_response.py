@@ -1,4 +1,4 @@
-# GithubApi2 SDK utility: transform_response
+# Waifuim SDK utility: transform_response
 
 from __future__ import annotations
 from projectname_sdk.utility.voxgig_struct import voxgig_struct as vs

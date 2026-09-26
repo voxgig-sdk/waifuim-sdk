@@ -1,4 +1,4 @@
-# GithubApi2 SDK feature corpus test
+# Waifuim SDK feature corpus test
 #
 # Feature behaviour, driven by the SHARED corpus.
 #
@@ -15,7 +15,7 @@
 
 require "minitest/autorun"
 require "json"
-require_relative "../GithubApi2_sdk"
+require_relative "../Waifuim_sdk"
 
 class FeatureCorpusTest < Minitest::Test
 
@@ -67,13 +67,21 @@ class FeatureCorpusTest < Minitest::Test
 
   # Build a client the way a caller would.
   #
-  # GithubApi2SDK.new, not GithubApi2SDK.test: the `test` feature is
+  # WaifuimSDK.new, not WaifuimSDK.test: the `test` feature is
   # transport: 'base' and REPLACES the transport, so a client in test mode
   # would shadow the script.
   def build_client(kase)
-    opts = { "utility" => { "fetcher" => scripted_fetcher(kase["res"]) } }
+    # "test" here is the OPTION, not the `test` FEATURE. It says "this
+    # client is not live", which is what makes a REQUIRED OpenAPI server
+    # variable resolve to a deterministic test-<name> rather than raise at
+    # construction (see make_options). It installs no transport, so the
+    # scripted fetcher still stands.
+    opts = {
+      "test" => { "active" => true },
+      "utility" => { "fetcher" => scripted_fetcher(kase["res"]) },
+    }
     opts["feature"] = kase["feature"] unless kase["feature"].nil?
-    GithubApi2SDK.new(opts)
+    WaifuimSDK.new(opts)
   end
 
   # Every operation this SDK declares, in a stable order.
@@ -192,6 +200,13 @@ class FeatureCorpusTest < Minitest::Test
     assert_equal expect, actual, path
   end
 
+  # Whether the SDK built the feature at all. The activity record is the
+  # wrong probe: most features create theirs on first use, so an idle
+  # client has none and every section but the eager ones read as inert.
+  def present?(client, name)
+    (client.features || []).any? { |f| f.respond_to?(:name) && f.name == name }
+  end
+
   def record(client, name)
     # A corpus key is any manifest item name, so it may carry characters
     # (foo-bar, foo.2) that cannot form a Ruby instance-variable name. The
@@ -238,7 +253,11 @@ class FeatureCorpusTest < Minitest::Test
       # Probed by ACTIVATING it: the feature defaults to inactive, so an idle
       # client never builds it and its absence says nothing.
       probe = build_client({ "feature" => [{ "name" => name, "active" => true }] })
-      next if record(probe, name).nil?
+      unless present?(probe, name)
+        # The one line every runner prints for an inert section.
+        puts "feature.#{name}: inert (this SDK does not generate the feature)"
+        next
+      end
 
       ops = usable_ops(2)
       by_key = ops.each_with_object({}) { |o, h| h[o["key"]] = o }

@@ -1,8 +1,8 @@
-# GithubApi2 SDK operation
+# Waifuim SDK operation
 
 require_relative '../utility/struct/voxgig_struct'
 
-class GithubApi2Operation
+class WaifuimOperation
   attr_accessor :entity, :name, :input, :points, :alias_map
 
   def initialize(opmap = {})

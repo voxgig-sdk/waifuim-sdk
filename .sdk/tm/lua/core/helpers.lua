@@ -1,4 +1,4 @@
--- GithubApi2 SDK helpers
+-- Waifuim SDK helpers
 
 local helpers = {}
 

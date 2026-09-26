@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-// GithubApi2 SDK error
+// Waifuim SDK error
 
-class GithubApi2Error extends \Exception
+class WaifuimError extends \Exception
 {
     public bool $is_sdk_error;
     public string $sdk;
@@ -28,7 +28,7 @@ class GithubApi2Error extends \Exception
     {
         parent::__construct($msg);
         $this->is_sdk_error = true;
-        $this->sdk = 'GithubApi2';
+        $this->sdk = 'Waifuim';
         $this->sdk_code = $code;
         $this->msg = $msg;
         $this->ctx = $ctx;

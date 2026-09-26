@@ -1,4 +1,4 @@
--- GithubApi2 SDK utility: make_fetch_def
+-- Waifuim SDK utility: make_fetch_def
 
 local vs = require("utility.struct.struct")
 

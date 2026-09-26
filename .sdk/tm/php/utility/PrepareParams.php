@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-// GithubApi2 SDK utility: prepare_params
+// Waifuim SDK utility: prepare_params
 
-class GithubApi2PrepareParams
+class WaifuimPrepareParams
 {
-    public static function call(GithubApi2Context $ctx): array
+    public static function call(WaifuimContext $ctx): array
     {
         $utility = $ctx->utility;
         $point = $ctx->point;

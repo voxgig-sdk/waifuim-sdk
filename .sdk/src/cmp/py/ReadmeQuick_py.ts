@@ -1,5 +1,5 @@
 
-import { cmp, each, Content, isAuthActive, envName, canonKey, canonScalarKey, opRequestShape, entityIdField, entityDataIdField, entityOps, safeVarName, exampleVarName, matchArg, idLiteral } from '@voxgig/sdkgen'
+import { cmp, each, Content, isAuthActive, envName, canonKey, canonScalarKey, opRequestShape, entityIdField, entityDataIdField, entityOps, safeVarName, exampleVarName, matchArg, idLiteral , serverVariables} from '@voxgig/sdkgen'
 
 import {
   KIT,
@@ -8,11 +8,6 @@ import {
 } from '@voxgig/apidef'
 
 
-// A `list()` on a NESTED entity needs its parent path params. The
-// quickstart used to emit `client.Moon().list()` for an entity at
-// `/planet/{planet_id}/moon`, which 404s against a live server from a
-// half-built URL — indistinguishable from "no such record". The model
-// already marks those params `reqd: true`; matchArg renders exactly them.
 function listMatchArg(ent: any): string {
   const idF = entityIdField(ent)
   return matchArg('py', ent, 'list', idF, idLiteral(ent, 'list', idF))
@@ -26,9 +21,6 @@ const ReadmeQuick = cmp(function ReadmeQuick(props: any) {
 
   const exampleEntity = Object.values(entity).find((e: any) => e.active !== false) as any
 
-  // Find a nested entity if available: one with a parent chain
-  // (relations.ancestors), an active load op, and a required non-id load
-  // param to demonstrate (the parent key, e.g. page_id).
   const nestedEntity = Object.values(entity).find((e: any) =>
     e.active !== false &&
     e.relations && e.relations.ancestors && 0 < e.relations.ancestors.length &&
@@ -38,10 +30,19 @@ const ReadmeQuick = cmp(function ReadmeQuick(props: any) {
   ) as any
 
   const authActive = isAuthActive(model)
+
+  const svars = serverVariables(model)
+  const pyServerField = 0 === svars.length ? '' :
+    `\n    "server": {` +
+    svars.map((v: any) => `\n        "${v.name}": "<${v.name}>",`).join('') +
+    `\n    },`
+
   const apikeyImport = authActive ? `import os\n` : ''
   const ctor = authActive
-    ? `${model.const.Name}SDK({\n    "apikey": os.environ.get("${envName(model)}_APIKEY"),\n})`
-    : `${model.const.Name}SDK()`
+    ? `${model.const.Name}SDK({\n    "apikey": os.environ.get("${envName(model)}_APIKEY"),${pyServerField}\n})`
+    : ('' === pyServerField
+      ? `${model.const.Name}SDK()`
+      : `${model.const.Name}SDK({${pyServerField}\n})`)
 
   Content(`### 1. Create a client
 
@@ -104,9 +105,6 @@ except Exception as err:
       const neArticle = /^[aeiou]/i.test(neName) ? 'an' : 'a'
       const neVar = exampleVarName(neName.toLowerCase(), 'py')
 
-      // Model-driven match: every REQUIRED load-match key — the same shape
-      // the runtime resolves path params from, so the example always works.
-      // Parent keys (e.g. page_id) first, the entity's own id last.
       const neIdF = entityIdField(nestedEntity)
       const neRequired = opRequestShape(nestedEntity, 'load').items
         .filter((it: any) => !it.optional)
@@ -135,9 +133,6 @@ except Exception as err:
 `)
     }
     else if (opnames.includes('load')) {
-      // Every REQUIRED load-match key (id first, then parent path params like
-      // page_id) — the same shape the runtime resolves path params from, so
-      // the example always works.
       const loadRequired = opRequestShape(exampleEntity, 'load').items
         .filter((it: any) => !it.optional || it.name === idF)
         .sort((a: any, b: any) =>
@@ -163,20 +158,12 @@ except Exception as err:
 `)
     }
 
-    // Model-driven example fields: derive the create/update body from the op
-    // shape (opRequestShape) so the docs reference REAL writable fields, not a
-    // hardcoded "name" the entity may not have. Literals are Python-typed by
-    // the field's canonical type. ids are rendered separately as the match key
-    // for update/remove; a REQUIRED create id stays (the call is invalid
-    // without it).
     const examplePairs = (opname: string): string[] => {
       const items = opRequestShape(exampleEntity, opname).items
         .filter((it: any) => (it.name !== idF && it.name !== 'id') ||
           ('create' === opname && !it.optional))
       const required = items.filter((it: any) => !it.optional)
       const optional = items.filter((it: any) => it.optional)
-      // create needs ALL required fields; update is a patch, so the required
-      // members plus a sample optional field or two suffice.
       const chosen = 'create' === opname
         ? (required.length ? required : items.slice(0, 2))
         : required.concat(optional).slice(0, Math.max(2, required.length))
@@ -214,8 +201,6 @@ client.${eName}().update({${updatePairs.join(', ')}})
 `)
       }
       if (opnames.includes('remove')) {
-        // Every REQUIRED remove-match key: the id (off the created record
-        // when possible) plus parent keys like page_id.
         const removePairs = opRequestShape(exampleEntity, 'remove').items
           .filter((it: any) => !it.optional || it.name === idF)
           .sort((a: any, b: any) =>

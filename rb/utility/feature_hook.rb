@@ -1,5 +1,5 @@
-# GithubApi2 SDK utility: feature_hook
-module GithubApi2Utilities
+# Waifuim SDK utility: feature_hook
+module WaifuimUtilities
   FeatureHook = ->(ctx, name) {
     return unless ctx.client
     features = ctx.client.features

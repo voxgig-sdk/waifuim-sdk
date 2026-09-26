@@ -1,6 +1,6 @@
-# GithubApi2 TypeScript — Agent Guide
+# Waifuim TypeScript — Agent Guide
 
-The TypeScript client for the GithubApi2 API. This directory is **generated** — do not edit it by hand; change the model/template/component in `.sdk/` and regenerate. See the [project guide](../AGENTS.md) for the full workflow and the aontu model language.
+The TypeScript client for the Waifuim API. This directory is **generated** — do not edit it by hand; change the model/template/component in `.sdk/` and regenerate. See the [project guide](../AGENTS.md) for the full workflow and the aontu model language.
 
 > Paths below (`.sdk/…`) are relative to the **project root** — one level up
 > from this `ts/` directory.
@@ -27,7 +27,7 @@ make test
 
 | Source | Path | Edit when… |
 | --- | --- | --- |
-| Target definition | `.sdk/model/target/ts.aon` | deps, module, extension, phases change |
+| Target definition | `.sdk/model/target/ts.aontu` | deps, module, extension, phases change |
 | Templates | `.sdk/tm/ts/` | the file is the **same for every API** (runtime, transport, base classes) — copied verbatim with placeholder substitution |
 | Components | `.sdk/src/cmp/ts/` | the file's shape **depends on the API** (entities, constructor, README, tests) — TypeScript that walks the model |
 
@@ -37,7 +37,10 @@ component.* After editing a component run `npm run build` before
 
 ## Features in this target
 
-- [`test`](./src/feature/test/AGENTS.md) — In-memory mock transport for testing without a live server
+- [`ratelimit`](./src/feature/ratelimit/AGENTS.md) — Rate limiting
+- [`retry`](./src/feature/retry/AGENTS.md) — Retry
+- [`test`](./src/feature/test/AGENTS.md) — Test transport
+- [`timeout`](./src/feature/timeout/AGENTS.md) — Timeout
 
 Each feature's runtime and its own guide live in `src/feature/<name>/`.
 

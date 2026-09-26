@@ -2,13 +2,13 @@
 import { test, describe } from 'node:test'
 import { equal } from 'node:assert'
 
-import { GithubApi2SDK } from '../..'
+import { WaifuimSDK } from '../..'
 
 
 describe('Custom', () => {
 
   test('basic', async () => {
-    const client = GithubApi2SDK.test({}, {
+    const client = WaifuimSDK.test({}, {
       apikey: 'APIKEY01',
 
       // NOTE: original utility.options must remain in place.

@@ -1,5 +1,5 @@
 
-import { GithubApi2SDK } from '../GithubApi2SDK'
+import { WaifuimSDK } from '../WaifuimSDK'
 
 import { Utility } from './Utility'
 

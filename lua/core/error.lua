@@ -1,13 +1,13 @@
--- GithubApi2 SDK error
+-- Waifuim SDK error
 
-local GithubApi2Error = {}
-GithubApi2Error.__index = GithubApi2Error
+local WaifuimError = {}
+WaifuimError.__index = WaifuimError
 
 
-function GithubApi2Error.new(code, msg, ctx)
-  local self = setmetatable({}, GithubApi2Error)
+function WaifuimError.new(code, msg, ctx)
+  local self = setmetatable({}, WaifuimError)
   self.is_sdk_error = true
-  self.sdk = "GithubApi2"
+  self.sdk = "Waifuim"
   self.code = code or ""
   self.msg = msg or ""
   self.ctx = ctx
@@ -17,14 +17,14 @@ function GithubApi2Error.new(code, msg, ctx)
 end
 
 
-function GithubApi2Error:error()
+function WaifuimError:error()
   return self.msg
 end
 
 
-function GithubApi2Error:__tostring()
+function WaifuimError:__tostring()
   return self.msg
 end
 
 
-return GithubApi2Error
+return WaifuimError

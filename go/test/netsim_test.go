@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	sdk "github.com/voxgig-sdk/github-api2-sdk/go"
+	sdk "github.com/voxgig-sdk/waifuim-sdk/go"
 )
 
 func TestNetsim(t *testing.T) {

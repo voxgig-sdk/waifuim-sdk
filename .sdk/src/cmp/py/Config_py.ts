@@ -13,8 +13,11 @@ import {
   each,
   isAuthActive,
   isConfigData,
+  resolveAuthIn,
+  resolveAuthName,
   resolveAuthPrefix,
   serverVariables,
+  targetFeatures,
 } from '@voxgig/sdkgen'
 
 
@@ -27,9 +30,43 @@ import {
 
 
 import {
-  clean,
   formatPyDict,
 } from './utility_py'
+
+
+function pluginImports(feature: any, pkg: string) {
+  each(feature, (f: any) => {
+    const bypath: Record<string, string[]> = {}
+
+    each(f.plugin, (plugin: any) => {
+      if (false === plugin.active || null == plugin.active) return
+
+      for (const [sym, one] of Object.entries(plugin.def?.py || {})) {
+        const path = String(one)
+        ; (bypath[path] = bypath[path] || []).push(sym)
+      }
+    })
+
+    for (const path of Object.keys(bypath).sort()) {
+      const mod = pkg + '.' +
+        path.replace(/^pkg\//, '').replace(/\.py$/, '').replace(/\//g, '.')
+      Line(`from ${mod} import ${bypath[path].sort().join(', ')}`)
+    }
+  })
+}
+
+function pluginDefs(feature: any) {
+  each(feature, (f: any) => {
+    const syms: string[] = []
+    each(f.plugin, (plugin: any) => {
+      if (false === plugin.active || null == plugin.active) return
+      syms.push(...Object.keys(plugin.def?.py || {}))
+    })
+    if (0 < syms.length) {
+      Line(`    "${f.name}": [${syms.sort().join(', ')}],`)
+    }
+  })
+}
 
 
 const Config = cmp(async function Config(props: any) {
@@ -39,19 +76,23 @@ const Config = cmp(async function Config(props: any) {
   const model: Model = ctx$.model
 
   const entity = getModelPath(model, `main.${KIT}.entity`)
-  const feature = getModelPath(model, `main.${KIT}.feature`)
+  const feature = targetFeatures(model, target)
 
   const headers = getModelPath(model, `main.${KIT}.config.headers`) || {}
 
   const authActive = isAuthActive(model)
-  // config.auth.prefix override -> spec-derived info.security.prefix -> 'Bearer'
   const authPrefix = resolveAuthPrefix(model)
+  // `in` and `name` travel with the prefix now. They were resolved by
+  // apidef all along and dropped here, so an apiKey-in-query API got an
+  // Authorization header it does not read. Emitted only when they differ
+  // from the defaults, so a header/Authorization SDK is byte-identical to
+  // what it generated before.
+  const authIn = resolveAuthIn(model)
+  const authName = resolveAuthName(model)
 
   let baseUrl = ''
   try { baseUrl = getModelPath(model, `main.${KIT}.info.servers.0.url`) } catch (_e) { }
 
-  // Templated server URL: emit the spec's server-variable defaults so the
-  // runtime can substitute {name} placeholders in base (see make_options).
   const svars = serverVariables(model)
   const serverBlock = 0 === svars.length ? '' :
     '            "server": {\n' +
@@ -60,23 +101,42 @@ const Config = cmp(async function Config(props: any) {
 
   const authBlock = authActive
     ? `            "auth": {
-                "prefix": "${authPrefix}",
+                "prefix": "${authPrefix}",${'header' === authIn ? '' : `
+                "in": "${authIn}",`}${'Authorization' === authName ? '' : `
+                "name": "${authName}",`}
             },\n`
     : ''
 
-  // The same config as an OBJECT, built by the shared helper so this target's
-  // literal and the data that replaces it above the threshold are the same
-  // config by construction. The JSON is what the threshold is measured on -
-  // emitted source size varies by language, the model does not. Passing the
-  // target name opts in to the main.slug/version/target identity fields -
-  // the literal path below emits them too, keeping the two reps in step.
   const { def: configDef, json: configJson } = configDefinition(model, target.name)
   const asData = isConfigData(configJson, configReprSetting(model))
+
+  const pkg = model.const.Name.toLowerCase() + '_sdk'
 
   File({ name: 'config.' + target.ext }, () => {
 
     Content(`# ${model.const.Name} SDK configuration
-${asData ? '\nimport json\n' : ''}
+${asData ? '\nimport json\n' : ''}`)
+
+    pluginImports(feature, pkg)
+
+    // The FEATURE_PLUGINS map is ALWAYS emitted, even empty: the secrets
+    // feature module imports it unconditionally, and (unlike ts) the py
+    // feature source is copied by Main's blanket pkg copy whether or not
+    // the model declares the feature - an import of a missing name would
+    // fail the whole package at collection time.
+    Content(`
+
+# The sekreto plugin DEFINITIONS the model selected per feature, imported
+# above by name from the modules the catalogue's active \`plugin.def\`
+# entries declare. Handed to each feature (secrets builds its Sekreto
+# with them): a provider kind not listed here is unknown to that SDK.
+FEATURE_PLUGINS = {
+`)
+
+    pluginDefs(feature)
+
+    Content(`}
+
 
 _shared_config = None
 
@@ -98,20 +158,6 @@ def shared_config():
 
 `)
 
-    // ABOVE THE THRESHOLD: emit the model as DATA.
-    //
-    // A dict literal makes CPython build the whole structure opcode by opcode
-    // at import, and the compiler hold the entire literal in memory to produce
-    // that bytecode. A string constant is one object, and `json.loads` (the C
-    // scanner) builds the dict far faster than the equivalent literal.
-    //
-    // `json.loads` yields exactly what the literal did - str keys, int for
-    // whole numbers, True/False/None - so make_config's result is unchanged.
-    //
-    // JSON.stringify output is a valid Python string literal: every escape it
-    // emits (\\", \\\\, \\n, \\uXXXX) means the same thing in Python, it never emits
-    // \\/ (which Python would not treat as an escape), and Python 3 source is
-    // UTF-8 so non-ASCII needs no escaping.
     if (asData) {
       Content(`# THE API MODEL, EMBEDDED AS DATA (sdkgen rung L1).
 #
@@ -132,10 +178,6 @@ def make_config():
       return
     }
 
-    // Identity values from configDefinition's def, not re-derived here, so
-    // the literal rep and the data rep cannot disagree on identity (the
-    // slug is CARRIED, never derived from the camel name - station's
-    // descriptor reads all three; see cmp/ts/Config_ts.ts #MainMeta).
     Content(`def make_config():
     """Build a fresh, fully materialised config dict.
 
@@ -176,12 +218,7 @@ ${serverBlock}${authBlock}            "headers": ${formatPyDict(headers, 3)},
     Content(`            },
         },
         "entity": ${formatPyDict(
-      Object.values(entity).reduce((a: any, n: any) => (a[n.name] = clean({
-        fields: n.fields,
-        name: n.name,
-        op: n.op,
-        relations: n.relations,
-      }, true), a), {}), 2)},
+configDef.entity, 2)},
     }
 `)
   })

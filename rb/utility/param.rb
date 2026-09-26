@@ -1,7 +1,7 @@
-# GithubApi2 SDK utility: param
+# Waifuim SDK utility: param
 require_relative 'struct/voxgig_struct'
 require_relative '../core/helpers'
-module GithubApi2Utilities
+module WaifuimUtilities
   Param = ->(ctx, paramdef) {
     point = ctx.point
     spec = ctx.spec
@@ -20,7 +20,7 @@ module GithubApi2Utilities
 
     akey = ""
     if point
-      alias_map = GithubApi2Helpers.to_map(VoxgigStruct.getprop(point, "alias"))
+      alias_map = WaifuimHelpers.to_map(VoxgigStruct.getprop(point, "alias"))
       if alias_map
         ak = VoxgigStruct.getprop(alias_map, key)
         akey = ak if ak.is_a?(String)

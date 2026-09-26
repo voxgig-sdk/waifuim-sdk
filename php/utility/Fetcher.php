@@ -1,16 +1,32 @@
 <?php
 declare(strict_types=1);
 
-// GithubApi2 SDK utility: fetcher
+// Waifuim SDK utility: fetcher
 
-class GithubApi2Fetcher
+class WaifuimFetcher
 {
     // Default User-Agent — many CDNs (notably Cloudflare) reject requests
     // with PHP's default UA (which file_get_contents doesn't even set),
     // returning 403 before the request reaches the origin. Set a Mozilla-
     // shaped UA so the SDK behaves like every other HTTP client by default.
     // Users can override by passing a User-Agent header in fetchdef.
-    public const DEFAULT_USER_AGENT = 'Mozilla/5.0 (compatible; GithubApi2SDK/1.0)';
+    public const DEFAULT_USER_AGENT = 'Mozilla/5.0 (compatible; WaifuimSDK/1.0)';
+
+    // One cURL handle per process, reset between calls rather than closed:
+    // curl_reset keeps the connection cache, so the next request to the
+    // same host reuses the open connection.
+    private static $curl = null;
+
+    private static function curlHandle(string $fullurl)
+    {
+        if (self::$curl === null) {
+            self::$curl = curl_init();
+        } else {
+            curl_reset(self::$curl);
+        }
+        curl_setopt(self::$curl, CURLOPT_URL, $fullurl);
+        return self::$curl;
+    }
 
     public static function defaultHttpFetch(string $fullurl, array $fetchdef): array
     {
@@ -130,7 +146,7 @@ class GithubApi2Fetcher
             ];
         }
 
-        $ch = curl_init($fullurl);
+        $ch = self::curlHandle($fullurl);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HEADER, false);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
@@ -157,7 +173,6 @@ class GithubApi2Fetcher
         $response_body = curl_exec($ch);
         if ($response_body === false) {
             $err = curl_error($ch) ?: 'curl_exec failed';
-            curl_close($ch);
             return [
                 [
                     'status' => 0,
@@ -169,7 +184,6 @@ class GithubApi2Fetcher
                 $err,
             ];
         }
-        curl_close($ch);
 
         $status = 0;
         $status_text = '';
@@ -206,7 +220,7 @@ class GithubApi2Fetcher
         ];
     }
 
-    public static function call(GithubApi2Context $ctx, string $fullurl, array $fetchdef): array
+    public static function call(WaifuimContext $ctx, string $fullurl, array $fetchdef): array
     {
         if ($ctx->client->mode !== 'live') {
             return [null, $ctx->make_error('fetch_mode_block',

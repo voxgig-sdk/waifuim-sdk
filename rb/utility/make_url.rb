@@ -1,6 +1,6 @@
-# GithubApi2 SDK utility: make_url
+# Waifuim SDK utility: make_url
 require_relative 'struct/voxgig_struct'
-module GithubApi2Utilities
+module WaifuimUtilities
   MakeUrl = ->(ctx) {
     spec = ctx.spec
     result = ctx.result

@@ -1,6 +1,6 @@
-# GithubApi2 SDK spec
+# Waifuim SDK spec
 
-class GithubApi2Spec
+class WaifuimSpec
   attr_accessor :parts, :headers, :alias_map, :base, :prefix, :suffix,
                 :params, :query, :step, :method, :body, :url, :path
 

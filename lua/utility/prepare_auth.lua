@@ -1,4 +1,4 @@
--- GithubApi2 SDK utility: prepare_auth
+-- Waifuim SDK utility: prepare_auth
 
 local vs = require("utility.struct.struct")
 

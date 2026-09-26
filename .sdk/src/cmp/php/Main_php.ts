@@ -4,6 +4,9 @@ import * as Path from 'node:path'
 import {
   cmp, each, names, cmap,
   List, File, Content, Copy, Folder, Fragment, Line, FeatureHook,
+  pluginExcludes,
+  targetFeatures,
+  TEST_CONTROL_EXCLUDE
 } from '@voxgig/sdkgen'
 
 
@@ -20,6 +23,8 @@ import {
 
 import { Package } from './Package_php'
 import { Config } from './Config_php'
+import { Schema } from './Schema_php'
+import { PrepareAuth } from './PrepareAuth_php'
 import { Gitignore } from './Gitignore_php'
 import { MainEntity } from './MainEntity_php'
 import { EntityTypes } from './EntityTypes_php'
@@ -31,7 +36,10 @@ const Main = cmp(async function Main(props: any) {
   const { model } = props.ctx$
 
   const entity: ModelEntity = getModelPath(model, `main.${KIT}.entity`)
-  const feature = getModelPath(model, `main.${KIT}.feature`)
+  // Gated by the applicability tags, so this target never imports or
+  // registers a feature it has no source for. One rule, one place:
+  // helpers/applicability.
+  const feature = targetFeatures(model, target)
 
   Package({ target })
 
@@ -40,13 +48,12 @@ const Main = cmp(async function Main(props: any) {
   // Copy tm/php files with replacements
   Copy({
     from: 'tm/' + target.name,
-    exclude: [/src\//],
+    exclude: [/^src(\/|$)/, TEST_CONTROL_EXCLUDE, ...pluginExcludes(model)],
     replace: {
       ...props.ctx$.stdrep,
     }
   })
 
-  // Generate main SDK file
   File({ name: model.const.Name.toLowerCase() + '_sdk.' + target.ext }, () => {
 
     Fragment(
@@ -83,7 +90,14 @@ const Main = cmp(async function Main(props: any) {
   // Generate config module
   Folder({ name: '.' }, () => {
     Config({ target })
+    Schema({ target })
   })
+
+  // GENERATED, NOT COPIED. Where the credential goes is a fact about the
+  // API, and tm/ can only hold one answer. The component opens `utility/`
+  // itself, because nothing is open here: Main writes into the target root.
+  // See PrepareAuth_php.
+  PrepareAuth({ target })
 
   // Generate typed models (types/<Sdk>Types.php) — classmap-autoloaded.
   EntityTypes({ target })

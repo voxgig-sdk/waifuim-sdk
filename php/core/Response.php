@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-// GithubApi2 SDK response
+// Waifuim SDK response
 
-class GithubApi2Response
+class WaifuimResponse
 {
     public int $status;
     public string $status_text;

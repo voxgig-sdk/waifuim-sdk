@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-// GithubApi2 SDK utility: done
+// Waifuim SDK utility: done
 
-class GithubApi2Done
+class WaifuimDone
 {
-    public static function call(GithubApi2Context $ctx): mixed
+    public static function call(WaifuimContext $ctx): mixed
     {
         if ($ctx->ctrl->explain) {
             $ctx->ctrl->explain = ($ctx->utility->clean)($ctx, $ctx->ctrl->explain);

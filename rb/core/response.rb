@@ -1,8 +1,8 @@
-# GithubApi2 SDK response
+# Waifuim SDK response
 
 require_relative '../utility/struct/voxgig_struct'
 
-class GithubApi2Response
+class WaifuimResponse
   attr_accessor :status, :status_text, :headers, :json_func, :body, :err
 
   def initialize(resmap = {})

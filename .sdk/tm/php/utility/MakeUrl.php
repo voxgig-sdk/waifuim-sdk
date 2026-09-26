@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-// GithubApi2 SDK utility: make_url
+// Waifuim SDK utility: make_url
 
-class GithubApi2MakeUrl
+class WaifuimMakeUrl
 {
-    public static function call(GithubApi2Context $ctx): array
+    public static function call(WaifuimContext $ctx): array
     {
         $spec = $ctx->spec;
         $result = $ctx->result;

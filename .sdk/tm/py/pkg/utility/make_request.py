@@ -1,8 +1,8 @@
-# GithubApi2 SDK utility: make_request
+# Waifuim SDK utility: make_request
 
 from __future__ import annotations
-from projectname_sdk.core.response import GithubApi2Response
-from projectname_sdk.core.result import GithubApi2Result
+from projectname_sdk.core.response import WaifuimResponse
+from projectname_sdk.core.result import WaifuimResult
 
 
 def make_request_util(ctx):
@@ -16,8 +16,8 @@ def make_request_util(ctx):
     spec = ctx.spec
     utility = ctx.utility
 
-    response = GithubApi2Response({})
-    result = GithubApi2Result({})
+    response = WaifuimResponse({})
+    result = WaifuimResult({})
     ctx.result = result
 
     if spec is None:
@@ -42,11 +42,11 @@ def make_request_util(ctx):
     if fetch_err is not None:
         response.err = fetch_err
     elif fetched is None:
-        response = GithubApi2Response({
+        response = WaifuimResponse({
             "err": ctx.make_error("request_no_response", "response: undefined"),
         })
     elif isinstance(fetched, dict):
-        response = GithubApi2Response(fetched)
+        response = WaifuimResponse(fetched)
     else:
         response.err = ctx.make_error("request_invalid_response", "response: invalid type")
 

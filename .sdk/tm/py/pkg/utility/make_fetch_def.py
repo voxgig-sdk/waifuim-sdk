@@ -1,4 +1,4 @@
-# GithubApi2 SDK utility: make_fetch_def
+# Waifuim SDK utility: make_fetch_def
 
 from __future__ import annotations
 from projectname_sdk.utility.voxgig_struct import voxgig_struct as vs
@@ -10,9 +10,9 @@ def make_fetch_def_util(ctx):
         return None, ctx.make_error("fetchdef_no_spec",
             "Expected context spec property to be defined.")
 
-    from projectname_sdk.core.result import GithubApi2Result
+    from projectname_sdk.core.result import WaifuimResult
     if ctx.result is None:
-        ctx.result = GithubApi2Result({})
+        ctx.result = WaifuimResult({})
 
     spec.step = "prepare"
 

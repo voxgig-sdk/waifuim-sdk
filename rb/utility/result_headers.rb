@@ -1,5 +1,5 @@
-# GithubApi2 SDK utility: result_headers
-module GithubApi2Utilities
+# Waifuim SDK utility: result_headers
+module WaifuimUtilities
   ResultHeaders = ->(ctx) {
     response = ctx.response
     result = ctx.result

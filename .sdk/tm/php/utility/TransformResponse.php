@@ -1,13 +1,13 @@
 <?php
 declare(strict_types=1);
 
-// GithubApi2 SDK utility: transform_response
+// Waifuim SDK utility: transform_response
 
 require_once __DIR__ . '/../core/Helpers.php';
 
-class GithubApi2TransformResponse
+class WaifuimTransformResponse
 {
-    public static function call(GithubApi2Context $ctx): mixed
+    public static function call(WaifuimContext $ctx): mixed
     {
         $spec = $ctx->spec;
         $result = $ctx->result;
@@ -18,7 +18,7 @@ class GithubApi2TransformResponse
         if ($result === null || !$result->ok) {
             return null;
         }
-        $transform = GithubApi2Helpers::to_map(\Voxgig\Struct\Struct::getprop($point, 'transform'));
+        $transform = WaifuimHelpers::to_map(\Voxgig\Struct\Struct::getprop($point, 'transform'));
         if (!$transform) {
             return null;
         }

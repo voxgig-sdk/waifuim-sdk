@@ -1,6 +1,6 @@
 package utility
 
-import "github.com/voxgig-sdk/github-api2-sdk/go/core"
+import "github.com/voxgig-sdk/waifuim-sdk/go/core"
 
 func prepareBodyUtil(ctx *core.Context) any {
 	op := ctx.Op

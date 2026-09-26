@@ -1,13 +1,13 @@
 <?php
 declare(strict_types=1);
 
-// GithubApi2 SDK utility: make_fetch_def
+// Waifuim SDK utility: make_fetch_def
 
 require_once __DIR__ . '/../core/Result.php';
 
-class GithubApi2MakeFetchDef
+class WaifuimMakeFetchDef
 {
-    public static function call(GithubApi2Context $ctx): array
+    public static function call(WaifuimContext $ctx): array
     {
         $spec = $ctx->spec;
         if (!$spec) {
@@ -15,7 +15,7 @@ class GithubApi2MakeFetchDef
         }
 
         if (!$ctx->result) {
-            $ctx->result = new GithubApi2Result([]);
+            $ctx->result = new WaifuimResult([]);
         }
         $spec->step = 'prepare';
 

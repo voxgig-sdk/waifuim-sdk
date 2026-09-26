@@ -1,4 +1,4 @@
--- GithubApi2 SDK utility: make_url
+-- Waifuim SDK utility: make_url
 
 local vs = require("utility.struct.struct")
 

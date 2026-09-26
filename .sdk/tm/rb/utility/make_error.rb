@@ -1,25 +1,25 @@
-# GithubApi2 SDK utility: make_error
+# Waifuim SDK utility: make_error
 require_relative '../core/operation'
 require_relative '../core/result'
 require_relative '../core/error'
-module GithubApi2Utilities
+module WaifuimUtilities
   MakeError = ->(ctx, err) {
     if ctx.nil?
       require_relative '../core/context'
-      ctx = GithubApi2Context.new({}, nil)
+      ctx = WaifuimContext.new({}, nil)
     end
-    op = ctx.op || GithubApi2Operation.new({})
+    op = ctx.op || WaifuimOperation.new({})
     opname = op.name
     opname = "unknown operation" if opname.empty? || opname == "_"
 
-    result = ctx.result || GithubApi2Result.new({})
+    result = ctx.result || WaifuimResult.new({})
     result.ok = false
 
     err = result.err if err.nil?
     err = ctx.make_error("unknown", "unknown error") if err.nil?
 
-    errmsg = err.is_a?(GithubApi2Error) ? err.msg : err.to_s
-    msg = "GithubApi2SDK: #{opname}: #{errmsg}"
+    errmsg = err.is_a?(WaifuimError) ? err.msg : err.to_s
+    msg = "WaifuimSDK: #{opname}: #{errmsg}"
     msg = ctx.utility.clean.call(ctx, msg)
 
     result.err = nil
@@ -29,14 +29,14 @@ module GithubApi2Utilities
       ctx.ctrl.explain["err"] = { "message" => msg }
     end
 
-    sdk_err = GithubApi2Error.new("", msg, ctx)
+    sdk_err = WaifuimError.new("", msg, ctx)
     sdk_err.result = ctx.utility.clean.call(ctx, result)
     sdk_err.spec = ctx.utility.clean.call(ctx, spec)
 
     # Promote the HTTP status to the top level, so a consumer can branch on
     # `err.status` / `err.not_found?` instead of reaching into `err.result`.
     sdk_err.status = result.status.nil? ? -1 : result.status
-    sdk_err.code = err.code if err.is_a?(GithubApi2Error)
+    sdk_err.code = err.code if err.is_a?(WaifuimError)
 
     ctx.ctrl.err = sdk_err
 

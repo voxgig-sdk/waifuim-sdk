@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-// GithubApi2 SDK utility: make_response
+// Waifuim SDK utility: make_response
 
-class GithubApi2MakeResponse
+class WaifuimMakeResponse
 {
-    public static function call(GithubApi2Context $ctx): array
+    public static function call(WaifuimContext $ctx): array
     {
         if (isset($ctx->out['response'])) {
             return [$ctx->out['response'], null];

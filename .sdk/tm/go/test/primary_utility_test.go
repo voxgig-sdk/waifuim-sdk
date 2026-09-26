@@ -11,15 +11,47 @@ import (
 	vs "github.com/voxgig/struct"
 )
 
+var pendingSections = map[string]bool{
+	"fetcher": true, "makeFetchDef": true, "makeResult": true,
+	"featureAdd": true, "featureHook": true, "featureInit": true,
+}
+
 func TestPrimaryUtility(t *testing.T) {
-	spec := loadTestSpec(t)
-	primary := getSpec(spec, "primary")
+	client := sdk.TestSDK(nil, nil)
+	utility := client.GetUtility()
+
+	// The corpus, through the vendored omni runner (see
+	// omniresolver_test.go). Subjects receive omni's native argument list:
+	// a ctx entry arrives as args[0], a MAP - omniCtx builds the typed
+	// context a generated utility takes, and omniSyncCtx writes the
+	// observable ctx state back for `match: {ctx: ...}` assertions.
+	runner := MakeRunner(TEST_JSON_FILE, client)
+	run, err := runner("primary", nil)
+	if err != nil {
+		t.Fatalf("Failed to make the corpus runner: %v", err)
+	}
+	primary := run.Spec
 	if primary == nil {
 		t.Fatal("primary section not found in test.json")
 	}
 
-	client := sdk.TestSDK(nil, nil)
-	utility := client.GetUtility()
+	runsection := func(t *testing.T, name string, subject any) {
+		t.Helper()
+		section, _ := primary[name].(map[string]any)
+		if section == nil {
+			t.Fatalf("test corpus section %q missing - check the name against .sdk/test/primary/", name)
+		}
+		basic, _ := section["basic"].(map[string]any)
+		set, ok := basic["set"].([]any)
+		if !ok {
+			t.Fatalf("test corpus section %q has no basic.set list - zero cases would run", name)
+		}
+		if 0 == len(set) && !pendingSections[name] {
+			t.Fatalf("test corpus section %q is EMPTY - zero cases would run; "+
+				"add cases, or mark the fixture PENDING in .sdk/test/primary/", name)
+		}
+		run.RunSet(t, basic, subject)
+	}
 
 	t.Run("exists", func(t *testing.T) {
 		if utility.Clean == nil {
@@ -121,36 +153,26 @@ func TestPrimaryUtility(t *testing.T) {
 	})
 
 	t.Run("done-basic", func(t *testing.T) {
-		runsetNamed(t, "done", getSpec(primary, "done", "basic"), func(entry map[string]any) (any, error) {
-			ctxmap, _ := entry["ctx"].(map[string]any)
-			ctx := makeCtxFromMap(ctxmap, client, utility)
-			fixctx(ctx, client)
+		runsection(t, "done", func(args ...any) (any, error) {
+			ctx := omniCtx(args[0], client, utility)
 			return utility.Done(ctx)
 		})
 	})
 
 	t.Run("makeError-basic", func(t *testing.T) {
-		runsetNamed(t, "makeError", getSpec(primary, "makeError", "basic"), func(entry map[string]any) (any, error) {
-			args, _ := entry["args"].([]any)
+		runsection(t, "makeError", func(args ...any) (any, error) {
 			if len(args) == 0 {
 				args = []any{map[string]any{}}
 			}
 
-			ctxmap, _ := args[0].(map[string]any)
-			if ctxmap == nil {
-				ctxmap = map[string]any{}
-			}
-			ctx := makeCtxFromMap(ctxmap, client, utility)
-			fixctx(ctx, client)
+			ctx := omniCtx(args[0], client, utility)
 
-			var err error
+			var errval error
 			if len(args) > 1 {
-				if errMap, ok := args[1].(map[string]any); ok {
-					err = errFromMap(errMap)
-				}
+				errval = omniErrArg(args[1])
 			}
 
-			return utility.MakeError(ctx, err)
+			return utility.MakeError(ctx, errval)
 		})
 	})
 
@@ -252,10 +274,7 @@ func TestPrimaryUtility(t *testing.T) {
 
 	t.Run("fetcher-live", func(t *testing.T) {
 		calls := []map[string]any{}
-		liveClient := sdk.NewGithubApi2SDK(map[string]any{
-			// Concrete base: a live construction must satisfy any server
-			// variables a templated base URL declares; a literal base
-			// sidesteps the requirement.
+		liveClient := sdk.NewWaifuimSDK(map[string]any{
 			"base": "http://localhost:8080",
 			"system": map[string]any{
 				"fetch": func(url string, fetchdef map[string]any) (map[string]any, error) {
@@ -286,7 +305,7 @@ func TestPrimaryUtility(t *testing.T) {
 
 	t.Run("fetcher-blocked-test-mode", func(t *testing.T) {
 		// Create a live SDK then set mode to test (not using TestSDK, which installs test feature)
-		blockedClient := sdk.NewGithubApi2SDK(map[string]any{
+		blockedClient := sdk.NewWaifuimSDK(map[string]any{
 			"base": "http://localhost:8080",
 			"system": map[string]any{
 				"fetch": func(url string, fetchdef map[string]any) (map[string]any, error) {
@@ -313,9 +332,8 @@ func TestPrimaryUtility(t *testing.T) {
 	})
 
 	t.Run("makeContext-basic", func(t *testing.T) {
-		runsetNamed(t, "makeContext", getSpec(primary, "makeContext", "basic"), func(entry map[string]any) (any, error) {
-			in := entry["in"]
-			if inMap, ok := in.(map[string]any); ok {
+		runsection(t, "makeContext", func(args ...any) (any, error) {
+			if inMap, ok := args[0].(map[string]any); ok {
 				ctx := utility.MakeContext(inMap, nil)
 				out := map[string]any{
 					"id": ctx.Id,
@@ -402,8 +420,8 @@ func TestPrimaryUtility(t *testing.T) {
 	})
 
 	t.Run("makeOptions-basic", func(t *testing.T) {
-		runsetNamed(t, "makeOptions", getSpec(primary, "makeOptions", "basic"), func(entry map[string]any) (any, error) {
-			in, _ := entry["in"].(map[string]any)
+		runsection(t, "makeOptions", func(args ...any) (any, error) {
+			in, _ := args[0].(map[string]any)
 			ctx := utility.MakeContext(map[string]any{
 				"options": in["options"],
 				"config":  in["config"],
@@ -415,9 +433,8 @@ func TestPrimaryUtility(t *testing.T) {
 	})
 
 	t.Run("makeRequest-basic", func(t *testing.T) {
-		runsetNamed(t, "makeRequest", getSpec(primary, "makeRequest", "basic"), func(entry map[string]any) (any, error) {
-			ctxmap, _ := entry["ctx"].(map[string]any)
-			ctx := makeCtxFromMap(ctxmap, client, utility)
+		runsection(t, "makeRequest", func(args ...any) (any, error) {
+			ctx := omniCtx(args[0], client, utility)
 			ctx.Options = client.OptionsMap()
 
 			_, err := utility.MakeRequest(ctx)
@@ -425,41 +442,23 @@ func TestPrimaryUtility(t *testing.T) {
 				return nil, err
 			}
 
-			// Update entry ctx for match checking
-			entryCtx, _ := entry["ctx"].(map[string]any)
-			if ctx.Response != nil {
-				entryCtx["response"] = "exists"
-			}
-			if ctx.Result != nil {
-				entryCtx["result"] = "exists"
-			}
+			// Expose response/result existence for the match assertions.
+			omniSyncCtx(args[0], ctx)
 
 			return nil, nil
 		})
 	})
 
 	t.Run("makeResponse-basic", func(t *testing.T) {
-		runsetNamed(t, "makeResponse", getSpec(primary, "makeResponse", "basic"), func(entry map[string]any) (any, error) {
-			ctxmap, _ := entry["ctx"].(map[string]any)
-			ctx := makeCtxFromMap(ctxmap, client, utility)
-			fixctx(ctx, client)
+		runsection(t, "makeResponse", func(args ...any) (any, error) {
+			ctx := omniCtx(args[0], client, utility)
 
 			_, err := utility.MakeResponse(ctx)
 			if err != nil {
 				return nil, err
 			}
 
-			// Update entry ctx for match checking with result data
-			entryCtx, _ := entry["ctx"].(map[string]any)
-			if ctx.Result != nil {
-				entryCtx["result"] = map[string]any{
-					"ok":         ctx.Result.Ok,
-					"status":     ctx.Result.Status,
-					"statusText": ctx.Result.StatusText,
-					"headers":    ctx.Result.Headers,
-					"body":       ctx.Result.Body,
-				}
-			}
+			omniSyncCtx(args[0], ctx)
 
 			return nil, nil
 		})
@@ -528,9 +527,8 @@ func TestPrimaryUtility(t *testing.T) {
 		specClient := sdk.TestSDK(nil, setupOpts)
 		specUtility := specClient.GetUtility()
 
-		runsetNamed(t, "makeSpec", getSpec(primary, "makeSpec", "basic"), func(entry map[string]any) (any, error) {
-			ctxmap, _ := entry["ctx"].(map[string]any)
-			ctx := makeCtxFromMap(ctxmap, specClient, specUtility)
+		runsection(t, "makeSpec", func(args ...any) (any, error) {
+			ctx := omniCtx(args[0], specClient, specUtility)
 			ctx.Options = specClient.OptionsMap()
 
 			_, err := utility.MakeSpec(ctx)
@@ -538,45 +536,19 @@ func TestPrimaryUtility(t *testing.T) {
 				return nil, err
 			}
 
-			// Update entry ctx for match
-			entryCtx, _ := entry["ctx"].(map[string]any)
-			if ctx.Spec != nil {
-				entryCtx["spec"] = map[string]any{
-					"base":    ctx.Spec.Base,
-					"prefix":  ctx.Spec.Prefix,
-					"suffix":  ctx.Spec.Suffix,
-					"method":  ctx.Spec.Method,
-					"params":  ctx.Spec.Params,
-					"query":   ctx.Spec.Query,
-					"headers": ctx.Spec.Headers,
-					"step":    ctx.Spec.Step,
-				}
-			}
+			omniSyncCtx(args[0], ctx)
 
 			return nil, nil
 		})
 	})
 
-	// Was one hand-written case (the single-point path) covering one of this
-	// utility's seven branches, which is how the corpus fixture came to be
-	// marked deferred as "needs a real client". It does not: NewContext
-	// rebuilds Op from opname + entity + config, and Options can be supplied
-	// literally. Driven from the corpus now, so TS and Go assert the same
-	// branches.
-	//
-	// TS returns the error AS the value; Go returns it as a second result. The
-	// corpus says `match: out: code` for both, so the error is normalised to a
-	// map carrying its code here rather than forking the fixture per language.
 	t.Run("makePoint-basic", func(t *testing.T) {
-		runsetNamed(t, "makePoint", getSpec(primary, "makePoint", "basic"), func(entry map[string]any) (any, error) {
-			ctxmap, _ := entry["ctx"].(map[string]any)
+		runsection(t, "makePoint", func(args ...any) (any, error) {
+			ctxmap, _ := args[0].(map[string]any)
+			if ctxmap == nil {
+				ctxmap = map[string]any{}
+			}
 
-			// NewContext resolves Op from the ENTITY NAME, and reaches it
-			// through the Entity interface — a literal {name:...} map from the
-			// fixture is not one, so entname would be "" and every lookup would
-			// miss, reporting point_no_points for all seven cases. TS reads the
-			// same field with getprop and accepts the plain map. Swap in the
-			// package's minimal Entity so both ports resolve the same op.
 			if em, ok := ctxmap["entity"].(map[string]any); ok {
 				name, _ := em["name"].(string)
 				made := []any{}
@@ -588,10 +560,10 @@ func TestPrimaryUtility(t *testing.T) {
 				ctxmap = swapped
 			}
 
-			ctx := makeCtxFromMap(ctxmap, client, utility)
+			ctx := omniCtx(ctxmap, client, utility)
 			point, err := utility.MakePoint(ctx)
 			if err != nil {
-				var sdkErr *sdk.GithubApi2Error
+				var sdkErr *sdk.WaifuimError
 				if errors.As(err, &sdkErr) {
 					return map[string]any{"code": sdkErr.Code}, nil
 				}
@@ -602,9 +574,8 @@ func TestPrimaryUtility(t *testing.T) {
 	})
 
 	t.Run("makeUrl-basic", func(t *testing.T) {
-		runsetNamed(t, "makeUrl", getSpec(primary, "makeUrl", "basic"), func(entry map[string]any) (any, error) {
-			ctxmap, _ := entry["ctx"].(map[string]any)
-			ctx := makeCtxFromMap(ctxmap, client, utility)
+		runsection(t, "makeUrl", func(args ...any) (any, error) {
+			ctx := omniCtx(args[0], client, utility)
 			if ctx.Result == nil {
 				ctx.Result = sdk.NewResult(map[string]any{})
 			}
@@ -613,58 +584,30 @@ func TestPrimaryUtility(t *testing.T) {
 	})
 
 	t.Run("operator-basic", func(t *testing.T) {
-		runsetNamed(t, "operator", getSpec(primary, "operator", "basic"), func(entry map[string]any) (any, error) {
-			in, _ := entry["in"].(map[string]any)
+		runsection(t, "operator", func(args ...any) (any, error) {
+			in, _ := args[0].(map[string]any)
 			op := sdk.NewOperation(in)
 			return map[string]any{
-				"entity":  op.Entity,
-				"name":    op.Name,
-				"input":   op.Input,
+				"entity": op.Entity,
+				"name":   op.Name,
+				"input":  op.Input,
 				"points": op.Points,
 			}, nil
 		})
 	})
 
 	t.Run("param-basic", func(t *testing.T) {
-		runsetNamed(t, "param", getSpec(primary, "param", "basic"), func(entry map[string]any) (any, error) {
-			args, _ := entry["args"].([]any)
+		runsection(t, "param", func(args ...any) (any, error) {
 			if len(args) < 2 {
 				return nil, nil
 			}
 
-			ctxmap, _ := args[0].(map[string]any)
-			if ctxmap == nil {
-				ctxmap = map[string]any{}
-			}
-			ctx := makeCtxFromMap(ctxmap, client, utility)
+			ctx := omniCtx(args[0], client, utility)
 			paramdef := args[1]
 
 			result := utility.Param(ctx, paramdef)
 
-			// Update entry ctx for match
-			if matchSpec, ok := entry["match"].(map[string]any); ok {
-				if ctxMatch, ok := matchSpec["ctx"].(map[string]any); ok {
-					entryCtx, _ := entry["ctx"].(map[string]any)
-					if entryCtx == nil {
-						entryCtx = map[string]any{}
-						entry["ctx"] = entryCtx
-					}
-					// Copy spec alias back to entry ctx for matching
-					if specMatch, ok := ctxMatch["spec"].(map[string]any); ok {
-						if ctx.Spec != nil {
-							if entryCtx["spec"] == nil {
-								entryCtx["spec"] = map[string]any{}
-							}
-							if aliasMatch, ok := specMatch["alias"].(map[string]any); ok {
-								_ = aliasMatch
-								entryCtx["spec"] = map[string]any{
-									"alias": ctx.Spec.Alias,
-								}
-							}
-						}
-					}
-				}
-			}
+			omniSyncCtx(args[0], ctx)
 
 			return result, nil
 		})
@@ -675,98 +618,99 @@ func TestPrimaryUtility(t *testing.T) {
 		authClient := sdk.TestSDK(nil, setupOpts)
 		authUtility := authClient.GetUtility()
 
-		runsetNamed(t, "prepareAuth", getSpec(primary, "prepareAuth", "basic"), func(entry map[string]any) (any, error) {
-			ctxmap, _ := entry["ctx"].(map[string]any)
-			ctx := makeCtxFromMap(ctxmap, authClient, authUtility)
-			fixctx(ctx, authClient)
+		// The corpus writes the credential as `headers.authorization`: a
+		// PLACEHOLDER each runner points at the container and name this API
+		// actually uses. plAuthCredential (pipeline_test.go, same package)
+		// discovers both by running PrepareAuth once.
+		cred := plAuthCredential(t)
+		if cred == nil {
+			t.Fatal("prepareAuth placed no credential in headers or query")
+		}
+
+		// An absent section is runsection's report to make, not a nil-map write.
+		if section, has := primary["prepareAuth"].(map[string]any); has &&
+			("headers" != cred.where || "authorization" != cred.name) {
+			original := section["basic"]
+			section["basic"] = retargetAuth(original, cred)
+			defer func() { section["basic"] = original }()
+		}
+
+		runsection(t, "prepareAuth", func(args ...any) (any, error) {
+			ctx := omniCtx(args[0], authClient, authUtility)
 
 			_, err := utility.PrepareAuth(ctx)
 			if err != nil {
 				return nil, err
 			}
 
-			// Update entry ctx for match
-			entryCtx, _ := entry["ctx"].(map[string]any)
-			if ctx.Spec != nil {
-				entryCtx["spec"] = map[string]any{
-					"headers": ctx.Spec.Headers,
-				}
-			}
+			omniSyncCtx(args[0], ctx)
 
 			return nil, nil
 		})
 	})
 
 	t.Run("prepareBody-basic", func(t *testing.T) {
-		runsetNamed(t, "prepareBody", getSpec(primary, "prepareBody", "basic"), func(entry map[string]any) (any, error) {
-			ctxmap, _ := entry["ctx"].(map[string]any)
-			ctx := makeCtxFromMap(ctxmap, client, utility)
-			fixctx(ctx, client)
+		runsection(t, "prepareBody", func(args ...any) (any, error) {
+			ctx := omniCtx(args[0], client, utility)
 			return utility.PrepareBody(ctx), nil
 		})
 	})
 
 	t.Run("prepareHeaders-basic", func(t *testing.T) {
-		runsetNamed(t, "prepareHeaders", getSpec(primary, "prepareHeaders", "basic"), func(entry map[string]any) (any, error) {
-			ctxmap, _ := entry["ctx"].(map[string]any)
-			ctx := makeCtxFromMap(ctxmap, client, utility)
+		runsection(t, "prepareHeaders", func(args ...any) (any, error) {
+			ctx := omniCtx(args[0], client, utility)
 			return utility.PrepareHeaders(ctx), nil
 		})
 	})
 
 	t.Run("prepareMethod-basic", func(t *testing.T) {
-		runsetNamed(t, "prepareMethod", getSpec(primary, "prepareMethod", "basic"), func(entry map[string]any) (any, error) {
-			ctxmap, _ := entry["ctx"].(map[string]any)
-			ctx := makeCtxFromMap(ctxmap, client, utility)
-			return utility.PrepareMethod(ctx), nil
+		runsection(t, "prepareMethod", func(args ...any) (any, error) {
+			ctx := omniCtx(args[0], client, utility)
+			// An op the API does not define resolves NO method; ts answers
+			// undefined there and go answers "" - both are "no value" to
+			// the corpus.
+			method := utility.PrepareMethod(ctx)
+			if "" == method {
+				return nil, nil
+			}
+			return method, nil
 		})
 	})
 
 	t.Run("prepareParams-basic", func(t *testing.T) {
-		runsetNamed(t, "prepareParams", getSpec(primary, "prepareParams", "basic"), func(entry map[string]any) (any, error) {
-			ctxmap, _ := entry["ctx"].(map[string]any)
-			ctx := makeCtxFromMap(ctxmap, client, utility)
+		runsection(t, "prepareParams", func(args ...any) (any, error) {
+			ctx := omniCtx(args[0], client, utility)
 			return utility.PrepareParams(ctx), nil
 		})
 	})
 
-	// Was two hand-written cases that had drifted out of the shared corpus
-	// (the preparePath fixture shipped as an empty `set: []`). Now driven by
-	// the corpus like every other section, so all ports assert the same
-	// separator/blank-segment behaviour.
 	t.Run("preparePath-basic", func(t *testing.T) {
-		runsetNamed(t, "preparePath", getSpec(primary, "preparePath", "basic"), func(entry map[string]any) (any, error) {
-			ctxmap, _ := entry["ctx"].(map[string]any)
-			ctx := makeCtxFromMap(ctxmap, client, utility)
+		runsection(t, "preparePath", func(args ...any) (any, error) {
+			ctx := omniCtx(args[0], client, utility)
 			return utility.PreparePath(ctx), nil
 		})
 	})
 
 	t.Run("clean-corpus", func(t *testing.T) {
-		runsetNamed(t, "clean", getSpec(primary, "clean", "basic"), func(entry map[string]any) (any, error) {
-			args, _ := entry["args"].([]any)
+		runsection(t, "clean", func(args ...any) (any, error) {
 			if 2 != len(args) {
 				return nil, fmt.Errorf("clean: expected 2 args, got %d", len(args))
 			}
-			ctxmap, _ := args[0].(map[string]any)
-			ctx := makeCtxFromMap(ctxmap, client, utility)
+			ctx := omniCtx(args[0], client, utility)
 			return utility.Clean(ctx, args[1]), nil
 		})
 	})
 
 	t.Run("prepareQuery-basic", func(t *testing.T) {
-		runsetNamed(t, "prepareQuery", getSpec(primary, "prepareQuery", "basic"), func(entry map[string]any) (any, error) {
-			ctxmap, _ := entry["ctx"].(map[string]any)
-			ctx := makeCtxFromMap(ctxmap, client, utility)
+		runsection(t, "prepareQuery", func(args ...any) (any, error) {
+			ctx := omniCtx(args[0], client, utility)
 			return utility.PrepareQuery(ctx), nil
 		})
 	})
 
 	t.Run("resultBasic-basic", func(t *testing.T) {
-		runsetNamed(t, "resultBasic", getSpec(primary, "resultBasic", "basic"), func(entry map[string]any) (any, error) {
-			ctxmap, _ := entry["ctx"].(map[string]any)
-			ctx := makeCtxFromMap(ctxmap, client, utility)
-			fixctx(ctx, client)
+		runsection(t, "resultBasic", func(args ...any) (any, error) {
+			ctx := omniCtx(args[0], client, utility)
 
 			result := utility.ResultBasic(ctx)
 
@@ -785,76 +729,49 @@ func TestPrimaryUtility(t *testing.T) {
 	})
 
 	t.Run("resultBody-basic", func(t *testing.T) {
-		runsetNamed(t, "resultBody", getSpec(primary, "resultBody", "basic"), func(entry map[string]any) (any, error) {
-			ctxmap, _ := entry["ctx"].(map[string]any)
-			ctx := makeCtxFromMap(ctxmap, client, utility)
+		runsection(t, "resultBody", func(args ...any) (any, error) {
+			ctx := omniCtx(args[0], client, utility)
 
 			utility.ResultBody(ctx)
 
-			// Update entry ctx for match
-			entryCtx, _ := entry["ctx"].(map[string]any)
-			if ctx.Result != nil {
-				entryCtx["result"] = map[string]any{
-					"body": ctx.Result.Body,
-				}
-			}
+			omniSyncCtx(args[0], ctx)
 
 			return nil, nil
 		})
 	})
 
 	t.Run("resultHeaders-basic", func(t *testing.T) {
-		runsetNamed(t, "resultHeaders", getSpec(primary, "resultHeaders", "basic"), func(entry map[string]any) (any, error) {
-			ctxmap, _ := entry["ctx"].(map[string]any)
-			ctx := makeCtxFromMap(ctxmap, client, utility)
+		runsection(t, "resultHeaders", func(args ...any) (any, error) {
+			ctx := omniCtx(args[0], client, utility)
 
 			utility.ResultHeaders(ctx)
 
-			// Update entry ctx for match
-			entryCtx, _ := entry["ctx"].(map[string]any)
-			if ctx.Result != nil {
-				entryCtx["result"] = map[string]any{
-					"headers": ctx.Result.Headers,
-				}
-			}
+			omniSyncCtx(args[0], ctx)
 
 			return nil, nil
 		})
 	})
 
 	t.Run("transformRequest-basic", func(t *testing.T) {
-		runsetNamed(t, "transformRequest", getSpec(primary, "transformRequest", "basic"), func(entry map[string]any) (any, error) {
-			ctxmap, _ := entry["ctx"].(map[string]any)
-			ctx := makeCtxFromMap(ctxmap, client, utility)
+		runsection(t, "transformRequest", func(args ...any) (any, error) {
+			ctx := omniCtx(args[0], client, utility)
 
 			result := utility.TransformRequest(ctx)
 
-			// Update entry ctx for match (step changed)
-			entryCtx, _ := entry["ctx"].(map[string]any)
-			if ctx.Spec != nil {
-				if specMap, ok := entryCtx["spec"].(map[string]any); ok {
-					specMap["step"] = ctx.Spec.Step
-				}
-			}
+			// The step advance is what the match assertion reads.
+			omniSyncCtx(args[0], ctx)
 
 			return result, nil
 		})
 	})
 
 	t.Run("transformResponse-basic", func(t *testing.T) {
-		runsetNamed(t, "transformResponse", getSpec(primary, "transformResponse", "basic"), func(entry map[string]any) (any, error) {
-			ctxmap, _ := entry["ctx"].(map[string]any)
-			ctx := makeCtxFromMap(ctxmap, client, utility)
+		runsection(t, "transformResponse", func(args ...any) (any, error) {
+			ctx := omniCtx(args[0], client, utility)
 
 			result := utility.TransformResponse(ctx)
 
-			// Update entry ctx for match (step changed)
-			entryCtx, _ := entry["ctx"].(map[string]any)
-			if ctx.Spec != nil {
-				if specMap, ok := entryCtx["spec"].(map[string]any); ok {
-					specMap["step"] = ctx.Spec.Step
-				}
-			}
+			omniSyncCtx(args[0], ctx)
 
 			return result, nil
 		})
@@ -890,7 +807,7 @@ func (f *testInitFeature) Init(ctx *sdk.Context, options map[string]any) {
 }
 
 // Helper: create basic test context
-func makeTestCtx(client *sdk.GithubApi2SDK, utility *sdk.Utility, overrides map[string]any) *sdk.Context {
+func makeTestCtx(client *sdk.WaifuimSDK, utility *sdk.Utility, overrides map[string]any) *sdk.Context {
 	ctxmap := map[string]any{
 		"opname":  "load",
 		"client":  client,
@@ -905,7 +822,7 @@ func makeTestCtx(client *sdk.GithubApi2SDK, utility *sdk.Utility, overrides map[
 }
 
 // Helper: create full test context with point and match
-func makeTestFullCtx(client *sdk.GithubApi2SDK, utility *sdk.Utility) *sdk.Context {
+func makeTestFullCtx(client *sdk.WaifuimSDK, utility *sdk.Utility) *sdk.Context {
 	ctx := makeTestCtx(client, utility, nil)
 	ctx.Point = map[string]any{
 		"parts":     []any{"items", "{id}"},
@@ -923,3 +840,39 @@ func makeTestFullCtx(client *sdk.GithubApi2SDK, utility *sdk.Utility) *sdk.Conte
 
 // useVS prevents unused import error
 var _ = vs.Clone
+
+
+// retargetAuth rewrites the corpus's `headers` bag to the container this
+// SDK's PrepareAuth writes to, and the `authorization` key inside it to the
+// API's own credential name. Applied only to the prepareAuth section, so
+// real header assertions elsewhere are untouched.
+func retargetAuth(node any, cred *plAuthCred) any {
+	switch value := node.(type) {
+	case map[string]any:
+		out := map[string]any{}
+		for key, child := range value {
+			if "headers" == key {
+				bag := map[string]any{}
+				inner, _ := child.(map[string]any)
+				for bagkey, bagvalue := range inner {
+					name := bagkey
+					if "authorization" == bagkey {
+						name = cred.name
+					}
+					bag[name] = retargetAuth(bagvalue, cred)
+				}
+				out[cred.where] = bag
+			} else {
+				out[key] = retargetAuth(child, cred)
+			}
+		}
+		return out
+	case []any:
+		out := make([]any, len(value))
+		for index, child := range value {
+			out[index] = retargetAuth(child, cred)
+		}
+		return out
+	}
+	return node
+}

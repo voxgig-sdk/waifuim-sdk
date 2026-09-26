@@ -1,18 +1,27 @@
-# GithubApi2 SDK feature factory
+# Waifuim SDK feature factory
 
 require_relative 'feature/base_feature'
+require_relative 'feature/ratelimit_feature'
+require_relative 'feature/retry_feature'
 require_relative 'feature/test_feature'
+require_relative 'feature/timeout_feature'
 
 
-module GithubApi2Features
+module WaifuimFeatures
   def self.make_feature(name)
     case name
     when "base"
-      GithubApi2BaseFeature.new
+      WaifuimBaseFeature.new
+    when "ratelimit"
+      WaifuimRatelimitFeature.new
+    when "retry"
+      WaifuimRetryFeature.new
     when "test"
-      GithubApi2TestFeature.new
+      WaifuimTestFeature.new
+    when "timeout"
+      WaifuimTimeoutFeature.new
     else
-      GithubApi2BaseFeature.new
+      WaifuimBaseFeature.new
     end
   end
 end

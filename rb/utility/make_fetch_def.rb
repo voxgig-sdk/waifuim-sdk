@@ -1,12 +1,12 @@
-# GithubApi2 SDK utility: make_fetch_def
+# Waifuim SDK utility: make_fetch_def
 require_relative 'struct/voxgig_struct'
 require_relative '../core/result'
-module GithubApi2Utilities
+module WaifuimUtilities
   MakeFetchDef = ->(ctx) {
     spec = ctx.spec
     return nil, ctx.make_error("fetchdef_no_spec", "Expected context spec property to be defined.") unless spec
 
-    ctx.result = GithubApi2Result.new({}) unless ctx.result
+    ctx.result = WaifuimResult.new({}) unless ctx.result
     spec.step = "prepare"
 
     url, err = ctx.utility.make_url.call(ctx)

@@ -1,6 +1,6 @@
-# GithubApi2 SDK helpers
+# Waifuim SDK helpers
 
-module GithubApi2Helpers
+module WaifuimHelpers
   def self.to_map(v)
     v.is_a?(Hash) ? v : nil
   end

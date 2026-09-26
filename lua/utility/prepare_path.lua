@@ -1,4 +1,4 @@
--- GithubApi2 SDK utility: prepare_path
+-- Waifuim SDK utility: prepare_path
 
 local vs = require("utility.struct.struct")
 

@@ -11,8 +11,13 @@ import {
   File,
   cmp,
   snakify,
-  isAuthActive, envName, envToken
+  isAuthActive, envName, envToken,
+  serverVarEnv,
+  serverVariables,
+  pointParts,
 } from '@voxgig/sdkgen'
+
+import { formatLuaValue } from './utility_lua'
 
 
 function normalizePathParams(
@@ -28,10 +33,10 @@ function normalizePathParams(
       // original name was renamed to another param's current name (e.g. badge
       // load: param 'group_id' has orig 'id', and another param has name 'id').
       const param = params.find((p: any) =>
-          p.name === snaked || p.name === depluralized) ||
+          p.n === snaked || p.n === depluralized) ||
         params.find((p: any) =>
-          p.orig === snaked || p.orig === depluralized)
-      if (param) return '{' + param.name + '}'
+          p.or === snaked || p.or === depluralized)
+      if (param) return '{' + param.n + '}'
 
       if (rename) {
         for (const [origCamel, renamedTo] of Object.entries(rename)) {
@@ -39,10 +44,10 @@ function normalizePathParams(
             const origSnaked = snakify(origCamel)
             const origDepluralized = depluralize(origSnaked)
             const renamedParam = params.find(
-              (p: any) => p.orig === origSnaked || p.name === origSnaked ||
-                p.orig === origDepluralized || p.name === origDepluralized
+              (p: any) => p.or === origSnaked || p.n === origSnaked ||
+                p.or === origDepluralized || p.n === origDepluralized
             )
-            if (renamedParam) return '{' + renamedParam.name + '}'
+            if (renamedParam) return '{' + renamedParam.n + '}'
           }
         }
       }
@@ -64,11 +69,24 @@ const TestDirect = cmp(function TestDirect(props: any) {
 
   const authActive = isAuthActive(model)
   const apikeyEnvEntry = authActive
-    ? `\n    ["${PROJECTNAME}_APIKEY"] = "NONE",`
+    ? `\n    ["${PROJECTNAME}_APIKEY"] = "",`
     : ''
   const apikeyLiveField = authActive
     ? `\n      apikey = env["${PROJECTNAME}_APIKEY"],`
     : ''
+
+  // A templated server URL (OpenAPI server variables) makes a LIVE client
+  // impossible to construct without values: makeOptions raises rather than
+  // request a URL with a literal `{account_id}` in it. So the live suite
+  // takes them from the environment the same way it takes the apikey.
+  const svars = serverVariables(model)
+  const serverEnvEntry = svars
+    .map((v: any) => `\n    ["${serverVarEnv(PROJECTNAME, v.name)}"] = ${formatLuaValue(v.dflt)},`).join('')
+  const serverLiveField = 0 === svars.length ? '' : `
+      server = {${svars
+      .map((v: any) => `
+        ["${v.name}"] = env["${serverVarEnv(PROJECTNAME, v.name)}"],`).join('')}
+      },`
 
   const opnames = Object.keys(entity.op || {})
   const hasLoad = opnames.includes('load')
@@ -82,20 +100,20 @@ const TestDirect = cmp(function TestDirect(props: any) {
   const listOp = entity.op?.list
 
   const loadPoint = loadOp?.points?.[0]
-  const loadPath = loadPoint ? normalizePathParams(loadPoint.parts || [], loadPoint?.args?.params || [], loadPoint?.rename?.param) : ''
-  const allLoadParams = loadPoint?.args?.params || []
+  const loadPath = loadPoint ? normalizePathParams(pointParts(loadPoint), loadPoint?.g?.params || [], loadPoint?.r?.param) : ''
+  const allLoadParams = loadPoint?.g?.params || []
   // Some upstream OpenAPI specs declare a parameter as `in: path` even when
   // that path has no `{name}` placeholder for it. Only path params that
   // actually appear in the URL template should drive direct-test path-param
   // setup and URL-substitution asserts; otherwise the SDK silently drops
   // them and the URL-includes assert fails.
   const _pathPlaceholders = new Set<string>()
-  for (const part of (loadPoint?.parts || [])) {
+  for (const part of pointParts(loadPoint)) {
     if (typeof part === 'string' && part.startsWith('{') && part.endsWith('}')) {
       _pathPlaceholders.add(part.slice(1, -1))
     }
   }
-  const _renameMap = (loadPoint?.rename?.param || {}) as Record<string, string>
+  const _renameMap = (loadPoint?.r?.param || {}) as Record<string, string>
   const _renamedPlaceholders = new Set<string>()
   for (const ph of _pathPlaceholders) {
     _renamedPlaceholders.add(ph)
@@ -104,25 +122,25 @@ const TestDirect = cmp(function TestDirect(props: any) {
     }
   }
   const loadParams = allLoadParams.filter((p: any) =>
-    _renamedPlaceholders.has(p.name) || _renamedPlaceholders.has(p.orig))
+    _renamedPlaceholders.has(p.n) || _renamedPlaceholders.has(p.or))
 
   const listPoint = listOp?.points?.[0]
-  const listPath = listPoint ? normalizePathParams(listPoint.parts || [], listPoint?.args?.params || [], listPoint?.rename?.param) : ''
-  const listParams = listPoint?.args?.params || []
+  const listPath = listPoint ? normalizePathParams(pointParts(listPoint), listPoint?.g?.params || [], listPoint?.r?.param) : ''
+  const listParams = listPoint?.g?.params || []
 
   // Required query params with spec-provided examples — needed in live mode.
-  const loadQuery = loadPoint?.args?.query || []
+  const loadQuery = loadPoint?.g?.query || []
   const loadLiveQueryEntries = loadQuery
-    .filter((q: any) => q.reqd && undefined !== q.example && null !== q.example)
+    .filter((q: any) => q.r && undefined !== q.ex && null !== q.ex)
   const loadLiveQueryLines = loadLiveQueryEntries
-    .map((q: any) => `      query["${q.name}"] = ${JSON.stringify(q.example)}`)
+    .map((q: any) => `      query["${q.n}"] = ${JSON.stringify(q.ex)}`)
     .join('\n')
 
   const loadAllHaveExamples =
     loadParams.length > 0 &&
-    loadParams.every((p: any) => undefined !== p.example && null !== p.example)
+    loadParams.every((p: any) => undefined !== p.ex && null !== p.ex)
   const loadExampleLines = loadAllHaveExamples
-    ? loadParams.map((p: any) => `      params["${p.name}"] = ${JSON.stringify(p.example)}`).join('\n')
+    ? loadParams.map((p: any) => `      params["${p.n}"] = ${JSON.stringify(p.ex)}`).join('\n')
     : ''
 
   const entidEnvVar = `${PROJECTNAME}_TEST_${envToken(entity.name)}_ENTID`
@@ -142,9 +160,9 @@ describe("${entity.Name}Direct", function()
 
     if (hasList && listPoint) {
       const listLiveIdKeys: string[] = listParams.map((lp: any) => {
-        return lp.name === 'id'
+        return lp.n === 'id'
           ? entity.name + '01'
-          : lp.name.replace(/_id$/, '') + '01'
+          : lp.n.replace(/_id$/, '') + '01'
       })
       const listSkipBlock = listLiveIdKeys.length > 0
         ? `    if setup.live then
@@ -175,13 +193,13 @@ ${listSkipBlock}    local client = setup.client
         Content(`    local params = {}
 `)
         for (const lp of listParams) {
-          const key = lp.name === 'id'
+          const key = lp.n === 'id'
             ? entity.name + '01'
-            : lp.name.replace(/_id$/, '') + '01'
+            : lp.n.replace(/_id$/, '') + '01'
           Content(`    if setup.live then
-      params["${lp.name}"] = setup.idmap["${key}"]
+      params["${lp.n}"] = setup.idmap["${key}"]
     else
-      params["${lp.name}"] = "direct01"
+      params["${lp.n}"] = "direct01"
     end
 `)
         }
@@ -233,8 +251,6 @@ ${listSkipBlock}    local client = setup.client
     }
 
     if (hasLoad && loadPoint) {
-      // Skip live direct-load only when we can't fill path params:
-      // no spec examples and no list-bootstrap. Spec examples win first.
       const loadSkipBlock = (loadParams.length > 0 && !loadAllHaveExamples)
         ? `    if setup.live then
       pending("live direct-load needs real ID — set *_ENTID env var with real IDs to run")
@@ -266,7 +282,7 @@ ${loadSkipBlock}    local client = setup.client
           Content(`    else
 `)
           for (let i = 0; i < loadParams.length; i++) {
-            Content(`      params["${loadParams[i].name}"] = "direct0${i + 1}"
+            Content(`      params["${loadParams[i].n}"] = "direct0${i + 1}"
 `)
           }
           Content(`    end
@@ -281,7 +297,7 @@ ${loadLiveQueryLines}
           Content(`    if not setup.live then
 `)
           for (let i = 0; i < loadParams.length; i++) {
-            Content(`      params["${loadParams[i].name}"] = "direct0${i + 1}"
+            Content(`      params["${loadParams[i].n}"] = "direct0${i + 1}"
 `)
           }
           Content(`    end
@@ -350,14 +366,21 @@ function ${entity.name}_direct_setup(mockres)
 
   local env = runner.env_override({
     ["${entidEnvVar}"] = {},
-    ["${PROJECTNAME}_TEST_LIVE"] = "FALSE",${apikeyEnvEntry}
+    ["${PROJECTNAME}_TEST_LIVE"] = "FALSE",${apikeyEnvEntry}${serverEnvEntry}
   })
 
   local live = env["${PROJECTNAME}_TEST_LIVE"] == "TRUE"
 
   if live then
-    local merged_opts = {${apikeyLiveField}
+    local merged_opts = {${apikeyLiveField}${serverLiveField}
     }
+    -- sdk-test-control.json's test.client.options goes UNDER the generated
+    -- fields: it adds to the live client, it does not redirect it.
+    for _k, _v in pairs(runner.live_client_options()) do
+      if merged_opts[_k] == nil then
+        merged_opts[_k] = _v
+      end
+    end
     local client = sdk.new(merged_opts)
     return {
       client = client,

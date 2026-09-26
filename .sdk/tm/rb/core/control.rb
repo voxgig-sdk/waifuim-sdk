@@ -1,6 +1,6 @@
-# GithubApi2 SDK control
+# Waifuim SDK control
 
-class GithubApi2Control
+class WaifuimControl
   attr_accessor :throw_err, :err, :explain, :actor, :paging
 
   def initialize(opts = {})

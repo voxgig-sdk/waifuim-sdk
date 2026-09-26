@@ -41,7 +41,7 @@ func makeSpecUtil(ctx *core.Context) (*core.Spec, error) {
 
 	ctx.Spec.Method = utility.PrepareMethod(ctx)
 
-	allowMethod, _ := vs.GetPath([]any{"allow", "method"}, options).(string)
+	allowMethod, _ := vs.GetPath(options, []any{"allow", "method"}).(string)
 	if !strings.Contains(allowMethod, ctx.Spec.Method) {
 		return nil, ctx.MakeError("spec_method_allow",
 			"Method \""+ctx.Spec.Method+
@@ -55,10 +55,6 @@ func makeSpecUtil(ctx *core.Context) (*core.Spec, error) {
 	kind, _ := vs.GetProp(point, "kind").(string)
 
 	if kind == "graphql" {
-		// GraphQL addresses one endpoint: no path parts, no query string,
-		// and the body carries the operation. PrepareBody is skipped
-		// deliberately — it only emits a body for data-input ops, whereas
-		// every GraphQL op posts one, including load/list/remove.
 		ctx.Spec.Body = utility.GraphqlBody(ctx)
 		ctx.Spec.Path = ""
 		// PrepareQuery already copied the op's match arguments into the
@@ -68,6 +64,11 @@ func makeSpecUtil(ctx *core.Context) (*core.Spec, error) {
 		ctx.Spec.Headers["content-type"] = GraphqlContentType
 	} else {
 		ctx.Spec.Body = utility.PrepareBody(ctx)
+
+		if berr, isErr := ctx.Spec.Body.(error); isErr {
+			return nil, berr
+		}
+
 		ctx.Spec.Path = utility.PreparePath(ctx)
 	}
 

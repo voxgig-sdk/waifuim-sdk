@@ -1,0 +1,128 @@
+# Entity: image
+
+main: kit: entity: image: {
+
+  alias: field: {}
+
+  fields: {
+    artist: {
+      h: "Artist"
+      n: "artist"
+      r: false
+      t: "`$OBJECT`"
+    }
+    category: {
+      h: "Category"
+      n: "category"
+      r: false
+      sh: "Category of the image"
+      t: "`$STRING`"
+    }
+    height: {
+      h: "Height"
+      n: "height"
+      r: false
+      sh: "Image height in pixels"
+      t: "`$INTEGER`"
+    }
+    id: {
+      h: "Id"
+      n: "id"
+      r: false
+      sh: "Unique identifier for the image"
+      t: "`$STRING`"
+    }
+    thumbnail: {
+      fo: "uri"
+      h: "Thumbnail"
+      n: "thumbnail"
+      r: false
+      sh: "URL to the thumbnail version of the image"
+      t: "`$STRING`"
+    }
+    url: {
+      fo: "uri"
+      h: "Url"
+      n: "url"
+      r: false
+      sh: "URL to the image"
+      t: "`$STRING`"
+    }
+    width: {
+      h: "Width"
+      n: "width"
+      r: false
+      sh: "Image width in pixels"
+      t: "`$INTEGER`"
+    }
+  }
+
+  id: {
+    field: "id"
+    name: "id"
+  }
+
+  name: "image"
+  op: {
+    list: {
+      name: "list"
+      points: [
+        {
+          co: {
+            id: "GET /images"
+            source: "openapi3"
+            version: 2
+          }
+          g: {
+            query: [
+              {
+                k: "query"
+                n: "category"
+                or: "category"
+                r: false
+                t: "`$STRING`"
+              }
+              {
+                ex: 1
+                k: "query"
+                n: "page"
+                or: "page"
+                r: false
+                t: "`$INTEGER`"
+              }
+              {
+                ex: 30
+                k: "query"
+                n: "page_size"
+                or: "page_size"
+                r: false
+                t: "`$INTEGER`"
+              }
+            ]
+          }
+          m: "GET"
+          o: "/images"
+          q: {
+            exist: [
+              "category"
+              "page"
+              "page_size"
+            ]
+          }
+          s: [
+            {
+              lit: "images"
+            }
+          ]
+          t: {
+            req: "`reqdata`"
+            res: "`body.images`"
+          }
+        }
+      ]
+    }
+  }
+
+
+
+}

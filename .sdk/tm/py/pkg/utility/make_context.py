@@ -1,7 +1,7 @@
-# GithubApi2 SDK utility: make_context
+# Waifuim SDK utility: make_context
 
-from projectname_sdk.core.context import GithubApi2Context
+from projectname_sdk.core.context import WaifuimContext
 
 
 def make_context_util(ctxmap, basectx):
-    return GithubApi2Context(ctxmap, basectx)
+    return WaifuimContext(ctxmap, basectx)

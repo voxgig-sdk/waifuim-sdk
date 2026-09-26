@@ -1,8 +1,8 @@
-# GithubApi2 SDK result
+# Waifuim SDK result
 
 require_relative '../utility/struct/voxgig_struct'
 
-class GithubApi2Result
+class WaifuimResult
   attr_accessor :ok, :status, :status_text, :headers, :body, :err, :resdata, :resmatch,
                 :paging, :streaming, :stream
 

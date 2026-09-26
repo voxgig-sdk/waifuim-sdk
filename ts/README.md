@@ -1,8 +1,8 @@
-# GithubApi2 TypeScript SDK
+# Waifuim TypeScript SDK
 
 
 
-The TypeScript SDK for the GithubApi2 API — a type-safe, entity-oriented client with full async/await support.
+The TypeScript SDK for the Waifuim API — a type-safe, entity-oriented client with full async/await support.
 
 The API is exposed as capitalised, semantic **Entities** — e.g.
 `client.Artist()` — each with a small set of operations (`list`)
@@ -17,7 +17,7 @@ predictable and low-friction for both humans and AI agents.
 This package is not yet published to npm. Install it from the GitHub
 release tag (`ts/vX.Y.Z`):
 
-- Releases: [https://github.com/voxgig-sdk/github-api2-sdk/releases](https://github.com/voxgig-sdk/github-api2-sdk/releases)
+- Releases: [https://github.com/voxgig-sdk/waifuim-sdk/releases](https://github.com/voxgig-sdk/waifuim-sdk/releases)
 
 
 ## Tutorial: your first API call
@@ -28,9 +28,9 @@ loading a specific record.
 ### 1. Create a client
 
 ```ts
-import { GithubApi2SDK } from '@voxgig-sdk/github-api2'
+import { WaifuimSDK } from '@voxgig-sdk/waifuim-sdk'
 
-const client = new GithubApi2SDK()
+const client = new WaifuimSDK()
 ```
 
 ### 2. List artist records
@@ -119,7 +119,7 @@ console.log(fetchdef.headers)
 Create a mock client for unit testing — no server required:
 
 ```ts
-const client = GithubApi2SDK.test()
+const client = WaifuimSDK.test()
 
 const artist = await client.Artist().list()
 // artist is the entity, populated with mock response data
@@ -130,7 +130,7 @@ console.log(artist)
 You can also use the instance method:
 
 ```ts
-const client = new GithubApi2SDK()
+const client = new WaifuimSDK()
 const testClient = client.tester()
 ```
 
@@ -165,7 +165,7 @@ const logger = {
   },
 }
 
-const client = new GithubApi2SDK({
+const client = new WaifuimSDK({
   extend: [logger],
 })
 ```
@@ -175,7 +175,7 @@ const client = new GithubApi2SDK({
 Create a `.env.local` file at the project root:
 
 ```
-GITHUB_API2_TEST_LIVE=TRUE
+WAIFUIM_TEST_LIVE=TRUE
 ```
 
 Then run:
@@ -184,15 +184,20 @@ Then run:
 cd ts && npm test
 ```
 
+Live entity tests continue independent operations after errors and attempt
+supported cleanup. Their final result reports failures and missing prerequisites
+after the remaining work completes. The model and test inputs determine which
+API operations the generated scenarios cover.
+
 
 ## Reference
 
-### GithubApi2SDK
+### WaifuimSDK
 
 #### Constructor
 
 ```ts
-new GithubApi2SDK(options?: {
+new WaifuimSDK(options?: {
   base?: string
   prefix?: string
   suffix?: string
@@ -219,13 +224,13 @@ new GithubApi2SDK(options?: {
 | `direct(fetchargs?)` | `Promise<DirectResult>` | Build and send an HTTP request. |
 | `Artist(data?)` | `ArtistEntity` | Create an Artist entity instance. |
 | `Image(data?)` | `ImageEntity` | Create an Image entity instance. |
-| `tester(testopts?, sdkopts?)` | `GithubApi2SDK` | Create a test-mode client instance. |
+| `tester(testopts?, sdkopts?)` | `WaifuimSDK` | Create a test-mode client instance. |
 
 #### Static methods
 
 | Method | Returns | Description |
 | --- | --- | --- |
-| `GithubApi2SDK.test(testopts?, sdkopts?)` | `GithubApi2SDK` | Create a test-mode client. |
+| `WaifuimSDK.test(testopts?, sdkopts?)` | `WaifuimSDK` | Create a test-mode client. |
 
 ### Entity interface
 
@@ -239,7 +244,7 @@ All entities share the same interface.
 | `data` | `data(data?: Partial<Entity>): Entity` | Get or set entity data. |
 | `match` | `match(match?: Partial<Entity>): Partial<Entity>` | Get or set entity match criteria. |
 | `make` | `make(): Entity` | Create a new instance with the same options. |
-| `client` | `client(): GithubApi2SDK` | Return the parent SDK client. |
+| `client` | `client(): WaifuimSDK` | Return the parent SDK client. |
 | `entopts` | `entopts(): object` | Return a copy of the entity options. |
 
 #### Return values
@@ -372,7 +377,7 @@ const images = await client.Image().list()
 
 ## Features
 
-This SDK ships 1 optional features. Each is **inactive until you
+This SDK ships 4 optional features. Each is **inactive until you
 switch it on**, so an SDK you have not configured behaves exactly as if none of
 them existed — no retries, no cache, no logging, no measurable overhead.
 
@@ -381,17 +386,75 @@ above:
 
 | Feature | What it does |
 |---|---|
-| [`test`](#test) | In-memory mock transport for testing without a live server |
+| [`ratelimit`](#ratelimit) | Rate limiting |
+| [`retry`](#retry) | Retry |
+| [`test`](#test) | Test transport |
+| [`timeout`](#timeout) | Timeout |
+
+> **Order matters for `ratelimit`, `retry`, `timeout`.** These wrap the
+> transport, so each one wraps whatever is already installed: the order you
+> activate them in IS the nesting order. Activating them as an ordered list
+> rather than a map is what fixes that order.
+
+### ratelimit
+
+Rate limiting.
+
+| Option | Default |
+|---|---|
+| `active` | `false` |
+| `burst` | `5` |
+| `rate` | `5` |
+
+Set `feature.ratelimit.active` to enable it, then override any of the options above.
+
+`ratelimit` wraps the transport, so its position among the other
+transport features decides what it sees. A feature activated later wraps one
+activated earlier.
+
+### retry
+
+Retry.
+
+| Option | Default |
+|---|---|
+| `active` | `false` |
+| `factor` | `2` |
+| `maxDelay` | `2000` |
+| `minDelay` | `50` |
+| `retries` | `2` |
+| `statuses` | `[408, 425, 429, 500, 502, 503, 504]` |
+
+Set `feature.retry.active` to enable it, then override any of the options above.
+
+`retry` wraps the transport, so its position among the other
+transport features decides what it sees. A feature activated later wraps one
+activated earlier.
 
 ### test
 
-In-memory mock transport for testing without a live server.
+Test transport.
 
 | Option | Default |
 |---|---|
 | `active` | `false` |
 
 Set `feature.test.active` to enable it, then override any of the options above.
+
+### timeout
+
+Timeout.
+
+| Option | Default |
+|---|---|
+| `active` | `false` |
+| `ms` | `30000` |
+
+Set `feature.timeout.active` to enable it, then override any of the options above.
+
+`timeout` wraps the transport, so its position among the other
+transport features decides what it sees. A feature activated later wraps one
+activated earlier.
 
 
 ## Advanced
@@ -432,7 +495,10 @@ a function that receives the context.
 
 The SDK ships with built-in features:
 
-- **TestFeature**: In-memory mock transport for testing without a live server
+- **RatelimitFeature**: Rate limiting
+- **RetryFeature**: Retry
+- **TestFeature**: Test transport
+- **TimeoutFeature**: Timeout
 
 Features are initialized in order. Hooks fire in the order features
 were added, so later features can override earlier ones.
@@ -440,9 +506,9 @@ were added, so later features can override earlier ones.
 ### Module structure
 
 ```
-github-api2/
+waifuim/
 ├── src/
-│   ├── GithubApi2SDK.ts        # Main SDK class
+│   ├── WaifuimSDK.ts        # Main SDK class
 │   ├── entity/             # Entity implementations
 │   ├── feature/            # Built-in features (Base, Test, Log)
 │   └── utility/            # Utility functions
@@ -453,7 +519,7 @@ github-api2/
 Import the SDK from the package root:
 
 ```ts
-import { GithubApi2SDK } from '@voxgig-sdk/github-api2'
+import { WaifuimSDK } from '@voxgig-sdk/waifuim-sdk'
 ```
 
 ### Entity state

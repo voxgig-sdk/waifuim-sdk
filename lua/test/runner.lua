@@ -1,4 +1,4 @@
--- GithubApi2 SDK test runner
+-- Waifuim SDK test runner
 
 local json = require("dkjson")
 local vs = require("utility.struct.struct")
@@ -35,8 +35,8 @@ end
 
 
 function runner.env_override(m)
-  local live = runner.getenv("GITHUB_API2_TEST_LIVE")
-  local override = runner.getenv("GITHUB_API2_TEST_OVERRIDE")
+  local live = runner.getenv("WAIFUIM_TEST_LIVE")
+  local override = runner.getenv("WAIFUIM_TEST_OVERRIDE")
 
   if live == "TRUE" or override == "TRUE" then
     for key, _ in pairs(m) do
@@ -56,9 +56,9 @@ function runner.env_override(m)
     end
   end
 
-  local explain = runner.getenv("GITHUB_API2_TEST_EXPLAIN")
+  local explain = runner.getenv("WAIFUIM_TEST_EXPLAIN")
   if explain ~= nil and explain ~= "" then
-    m["GITHUB_API2_TEST_EXPLAIN"] = explain
+    m["WAIFUIM_TEST_EXPLAIN"] = explain
   end
 
   return m
@@ -143,6 +143,46 @@ function runner.is_control_skipped(kind, name, mode)
     end
   end
   return false, nil
+end
+
+
+-- Extra SDK options every LIVE client is constructed with, read from
+-- sdk-test-control.json `test.client.options`.
+--
+-- The generated live client knows two things: the base URL (from the spec)
+-- and the credential (from the environment). Everything else about how a
+-- particular API wants to be talked to - which features to switch on, and
+-- with what settings - is a property of THAT API, known to the project and
+-- to nothing in the toolchain.
+--
+-- Merged UNDER the generated fields, so the suite's own base/apikey/server
+-- values win: this ADDS to the live client, it does not redirect it.
+--
+-- Reserved fields are stripped HERE rather than at each merge site: the
+-- generated table only names a field when the model calls for one, so a
+-- "base" in this block would face no competing value and would silently
+-- redirect the whole suite - credential included - to another host.
+local LIVE_RESERVED = {
+  base = true, prefix = true, suffix = true,
+  server = true, apikey = true, secret = true,
+}
+
+function runner.live_client_options()
+  local ctrl = runner.load_test_control()
+  local test = ctrl.test
+  if type(test) ~= "table" then return {} end
+  local client = test.client
+  if type(client) ~= "table" then return {} end
+  local opts = client.options
+  if type(opts) ~= "table" then return {} end
+
+  local out = {}
+  for k, v in pairs(opts) do
+    if not LIVE_RESERVED[k] then
+      out[k] = v
+    end
+  end
+  return out
 end
 
 

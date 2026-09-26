@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-// GithubApi2 SDK operation
+// Waifuim SDK operation
 
-class GithubApi2Operation
+class WaifuimOperation
 {
     public string $entity;
     public string $name;

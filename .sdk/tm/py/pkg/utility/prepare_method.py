@@ -1,4 +1,4 @@
-# GithubApi2 SDK utility: prepare_method
+# Waifuim SDK utility: prepare_method
 
 from projectname_sdk.utility.voxgig_struct import voxgig_struct as vs
 
@@ -22,4 +22,8 @@ def prepare_method_util(ctx):
     if isinstance(method, str) and "" != method:
         return method.upper()
 
-    return METHOD_MAP.get(opname, "GET")
+    # No default: an op name outside the convention resolves to no method,
+    # exactly as the ts reference (`methodMap[key]` is undefined there).
+    # The silent-pass inline runner hid a stray "GET" fallback here; the
+    # shared corpus (prepareMethod, opname "bad" -> null) pins it now.
+    return METHOD_MAP.get(opname)

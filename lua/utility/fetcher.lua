@@ -1,4 +1,4 @@
--- GithubApi2 SDK utility: fetcher
+-- Waifuim SDK utility: fetcher
 
 local vs = require("utility.struct.struct")
 local json = require("dkjson")
@@ -35,7 +35,7 @@ local function default_http_fetch(fullurl, fetchdef)
     end
   end
   if not has_ua then
-    headers["User-Agent"] = "Mozilla/5.0 (compatible; GithubApi2SDK/1.0)"
+    headers["User-Agent"] = "Mozilla/5.0 (compatible; WaifuimSDK/1.0)"
   end
 
   local response_body = {}

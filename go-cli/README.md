@@ -1,6 +1,6 @@
-# github-api2-cli
+# waifuim-cli
 
-boru-driven command-line client **and** interactive REPL for the GithubApi2
+boru-driven command-line client **and** interactive REPL for the Waifuim
 SDK. Each command line is parsed as a single [boru](https://github.com/boru-lang/boru)
 expression and evaluated against the live API; run it with no arguments to drop
 into a REPL. Built on `github.com/boru-lang/boru/eng/go` and the sibling Go SDK
@@ -9,26 +9,26 @@ at `../go`.
 ## Examples
 
 ```sh
-# 1. Build a native binary (-> dist/<os>-<arch>/github-api2-cli)
+# 1. Build a native binary (-> dist/<os>-<arch>/waifuim-cli)
 make build
 
 # 2. See usage (words, entities, env vars)
-./github-api2-cli --help
+./waifuim-cli --help
 
 # 3. Provide credentials once, via the environment
-export GITHUB_API2_APIKEY=sk_live_xxx
+export WAIFUIM_APIKEY=sk_live_xxx
 
 # 4. Each command line is ONE boru expression, run against the API:
-./github-api2-cli list artist
-./github-api2-cli list image
+./waifuim-cli list artist
+./waifuim-cli list image
 
 # 5. Override the API base URL for a single call
-GITHUB_API2_BASE=https://api.example.com ./github-api2-cli list artist
+WAIFUIM_BASE=https://api.example.com ./waifuim-cli list artist
 
 # 6. No arguments -> interactive REPL
-./github-api2-cli
-github-api2> list artist
-github-api2> /quit
+./waifuim-cli
+waifuim> list artist
+waifuim> /quit
 ```
 
 > The rest of this guide follows the [Diátaxis](https://diataxis.fr) framework:
@@ -40,20 +40,20 @@ github-api2> /quit
 1. **Build the binary.** From this `go-cli/` directory:
 
    ```sh
-   make build          # -> dist/<os>-<arch>/github-api2-cli
+   make build          # -> dist/<os>-<arch>/waifuim-cli
    ```
 
 2. **Set your API key** (read from the environment):
 
    ```sh
-   export GITHUB_API2_APIKEY=sk_live_xxx
+   export WAIFUIM_APIKEY=sk_live_xxx
    ```
 
 3. **Run a query.** Evaluate an boru expression against the API (or run with no
    arguments to open the REPL):
 
    ```sh
-   ./dist/*/github-api2-cli list artist
+   ./dist/*/waifuim-cli list artist
    ```
 
 4. **Go interactive.** Run the binary with no arguments to open the REPL, then
@@ -66,7 +66,7 @@ That is the whole loop: *build → set key → evaluate boru expressions*.
 ### List the records of an entity
 
 ```sh
-./github-api2-cli list artist
+./waifuim-cli list artist
 ```
 
 `list <entity>` returns the first page of records. `<entity>` is a bareword —
@@ -77,23 +77,23 @@ it is auto-quoted as an boru atom, so no quotes are needed.
 Configuration is read from the environment — nothing is written to disk:
 
 ```sh
-export GITHUB_API2_APIKEY=sk_live_xxx            # API key
-export GITHUB_API2_BASE=https://api.example.com  # optional: override the API base URL
-./github-api2-cli list artist
+export WAIFUIM_APIKEY=sk_live_xxx            # API key
+export WAIFUIM_BASE=https://api.example.com  # optional: override the API base URL
+./waifuim-cli list artist
 ```
 
 Both are injectable by a secrets vault, so the key never has to be typed inline.
 
 ### Explore interactively with the REPL
 
-Run with no arguments to open a REPL (prompt `github-api2>`). Each line is
+Run with no arguments to open a REPL (prompt `waifuim>`). Each line is
 evaluated as its own boru expression:
 
 ```text
-$ ./github-api2-cli
-github-api2> list artist
-github-api2> /help
-github-api2> /quit
+$ ./waifuim-cli
+waifuim> list artist
+waifuim> /help
+waifuim> /quit
 ```
 
 ### Cross-compile release binaries
@@ -126,8 +126,8 @@ The CLI registers these boru words, each bound to the SDK:
 
 | Variable | Purpose |
 |----------|---------|
-| `GITHUB_API2_APIKEY` | API key sent with every request. |
-| `GITHUB_API2_BASE` | Optional override of the API base URL. |
+| `WAIFUIM_APIKEY` | API key sent with every request. |
+| `WAIFUIM_BASE` | Optional override of the API base URL. |
 
 Unset variables fall back to the SDK's built-in defaults.
 
@@ -153,7 +153,7 @@ Meta-commands use the `/` prefix (everything else on a line is evaluated as boru
 
 | Target | Result |
 |--------|--------|
-| `make build` | Native binary at `dist/<os>-<arch>/github-api2-cli`. |
+| `make build` | Native binary at `dist/<os>-<arch>/waifuim-cli`. |
 | `make build-all` | linux/darwin/windows x amd64/arm64, each under its own `dist/<os>-<arch>/`. |
 | `make clean` | Remove `dist/` and any stray binaries. |
 
@@ -169,7 +169,7 @@ artist image
 
 The whole command line is one [boru](https://github.com/boru-lang/boru) expression,
 not a fixed `verb --flag` grammar. That means the same binary works one-shot
-(`./github-api2-cli <expr>`) and interactively (the REPL), and expressions compose the
+(`./waifuim-cli <expr>`) and interactively (the REPL), and expressions compose the
 same way in both. `list` / `load` / `update` are ordinary boru *words* bound to
 the SDK — adding SDK operations is adding words, not re-parsing flags.
 

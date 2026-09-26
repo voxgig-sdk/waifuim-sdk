@@ -1,4 +1,4 @@
--- GithubApi2 SDK spec
+-- Waifuim SDK spec
 
 local Spec = {}
 Spec.__index = Spec

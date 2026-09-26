@@ -1,4 +1,4 @@
-# GithubApi2 SDK — documentation example COMPLETENESS GATE.
+# Waifuim SDK — documentation example COMPLETENESS GATE.
 #
 # Guarantees every fenced ruby code example across ALL THREE package docs is
 # unit-tested. Reads the root ../../README.md, the Ruby ../README.md, and
@@ -9,7 +9,7 @@
 #      parse.
 #   2. RUN — every RUNNABLE block (one that constructs the SDK, drives client.,
 #      or performs an entity op load/list/create/update/remove) is EXECUTED
-#      offline in seeded test mode (GithubApi2SDK.test) against the real
+#      offline in seeded test mode (WaifuimSDK.test) against the real
 #      SDK. The captured output is scanned for a real Ruby-level error (undefined
 #      method, wrong number of arguments, NameError, ...) REGARDLESS of exit
 #      code, so a bug a documented begin/rescue swallows and prints cannot slip
@@ -34,12 +34,12 @@ class ReadmeExamplesTest < Minitest::Test
     "rb README" => File.join(__dir__, "..", "README.md"),
     "rb REFERENCE" => File.join(__dir__, "..", "REFERENCE.md"),
   }
-  SDK = File.join(__dir__, "..", "GithubApi2_sdk.rb")
-  SDK_CLASS = "GithubApi2SDK"
+  SDK = File.join(__dir__, "..", "Waifuim_sdk.rb")
+  SDK_CLASS = "WaifuimSDK"
 
   # SDK file basename (no extension) — used to strip the doc's own require of the
   # SDK file from a runnable block (we require it by absolute path).
-  SDK_BASE = "GithubApi2_sdk"
+  SDK_BASE = "Waifuim_sdk"
 
   # Entity accessor (client.<Name>) => fixture storage key (lowercase name).
   ENTITIES = {

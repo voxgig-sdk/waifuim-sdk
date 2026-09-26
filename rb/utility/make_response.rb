@@ -1,5 +1,5 @@
-# GithubApi2 SDK utility: make_response
-module GithubApi2Utilities
+# Waifuim SDK utility: make_response
+module WaifuimUtilities
   MakeResponse = ->(ctx) {
     return ctx.out["response"], nil if ctx.out["response"]
     utility = ctx.utility

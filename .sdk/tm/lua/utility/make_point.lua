@@ -1,4 +1,4 @@
--- GithubApi2 SDK utility: make_point
+-- Waifuim SDK utility: make_point
 
 local vs = require("utility.struct.struct")
 local helpers = require("core.helpers")

@@ -1,5 +1,5 @@
-# GithubApi2 SDK utility: result_basic
-module GithubApi2Utilities
+# Waifuim SDK utility: result_basic
+module WaifuimUtilities
   ResultBasic = ->(ctx) {
     response = ctx.response
     result = ctx.result
@@ -9,7 +9,7 @@ module GithubApi2Utilities
       if result.status >= 400
         msg = "request: #{result.status}: #{result.status_text}"
         if result.err
-          prev = result.err.is_a?(GithubApi2Error) ? result.err.msg : result.err.to_s
+          prev = result.err.is_a?(WaifuimError) ? result.err.msg : result.err.to_s
           result.err = ctx.make_error("request_status", "#{prev}: #{msg}")
         else
           result.err = ctx.make_error("request_status", msg)

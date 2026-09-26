@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-// GithubApi2 SDK utility: result_headers
+// Waifuim SDK utility: result_headers
 
-class GithubApi2ResultHeaders
+class WaifuimResultHeaders
 {
-    public static function call(GithubApi2Context $ctx): ?GithubApi2Result
+    public static function call(WaifuimContext $ctx): ?WaifuimResult
     {
         $response = $ctx->response;
         $result = $ctx->result;

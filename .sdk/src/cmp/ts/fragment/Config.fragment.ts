@@ -8,12 +8,16 @@ const FEATURE_CLASS: Record<string, typeof BaseFeature> = {
 }
 
 
+const FEATURE_PLUGINS: Record<string, any[]> = {
+  // #FeaturePlugins
+}
+
+
 class Config {
 
   makeFeature(this: any, fn: string) {
     const fc = FEATURE_CLASS[fn]
     const fi = new fc()
-    // TODO: errors etc
     return fi
   }
 
@@ -26,7 +30,7 @@ class Config {
 
 
   main = {
-    name: 'GithubApi2',
+    name: 'Waifuim',
     // #MainMeta
   }
 
@@ -54,6 +58,7 @@ class Config {
 const config = new Config()
 
 export {
-  config
+  config,
+  FEATURE_PLUGINS,
 }
 

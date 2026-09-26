@@ -1,16 +1,16 @@
-# GithubApi2 PHP SDK Reference
+# Waifuim PHP SDK Reference
 
-Complete API reference for the GithubApi2 PHP SDK.
+Complete API reference for the Waifuim PHP SDK.
 
 
-## GithubApi2SDK
+## WaifuimSDK
 
 ### Constructor
 
 ```php
-require_once __DIR__ . '/githubapi2_sdk.php';
+require_once __DIR__ . '/waifuim_sdk.php';
 
-$client = new GithubApi2SDK($options);
+$client = new WaifuimSDK($options);
 ```
 
 Create a new SDK client instance.
@@ -30,12 +30,12 @@ Create a new SDK client instance.
 
 ### Static Methods
 
-#### `GithubApi2SDK::test($testopts = null, $sdkopts = null)`
+#### `WaifuimSDK::test($testopts = null, $sdkopts = null)`
 
 Create a test client with mock features active. Both arguments may be `null`.
 
 ```php
-$client = GithubApi2SDK::test();
+$client = WaifuimSDK::test();
 ```
 
 
@@ -53,7 +53,7 @@ Create a new `ImageEntity` instance. Pass `null` for no initial data.
 
 Return a deep copy of the current SDK options.
 
-#### `get_utility(): GithubApi2Utility`
+#### `get_utility(): WaifuimUtility`
 
 Return a copy of the SDK utility object.
 
@@ -202,15 +202,21 @@ Return the entity name.
 
 | Feature | Version | Description |
 | --- | --- | --- |
-| `test` | 0.0.1 | In-memory mock transport for testing without a live server |
+| `ratelimit` | 0.0.1 | Rate limiting |
+| `retry` | 0.0.1 | Retry |
+| `test` | 0.0.1 | Test transport |
+| `timeout` | 0.0.1 | Timeout |
 
 
 Features are activated via the `feature` option:
 
 ```php
-$client = new GithubApi2SDK([
+$client = new WaifuimSDK([
   "feature" => [
+    "ratelimit" => ["active" => true],
+    "retry" => ["active" => true],
     "test" => ["active" => true],
+    "timeout" => ["active" => true],
   ],
 ]);
 ```
@@ -225,9 +231,88 @@ unless you name it.
 The array form of \`feature\` is significant: several features wrap the
 transport, and the order you list them in is the order they nest.
 
+#### Ordering
+
+`ratelimit`, `retry`, `timeout` wrap the transport. Each
+wraps whatever is already installed, so **activation order is nesting order**:
+a feature activated later sits OUTSIDE one activated earlier, and sees the call
+first.
+
+That decides behaviour, not just sequence: a feature that short-circuits the
+call, such as a cache serving a hit, stops every feature nested inside it from
+ever seeing that call.
+
+`test` attach to pipeline hooks
+rather than the transport, so their order does not affect what they observe.
+
+#### `ratelimit`
+
+Rate limiting.
+
+**Configuration**
+
+| Option | Default |
+|---|---|
+| `active` | `false` |
+| `burst` | `5` |
+| `rate` | `5` |
+
+| Option | Type |
+|---|---|
+| `now` | function |
+| `sleep` | function |
+
+These take no default: the feature behaves one way when you supply them and
+another when you do not.
+
+**Usage**
+
+Set `feature.ratelimit.active` to true in the client options, and override any option above in the same entry. Every option keeps
+its default unless you name it.
+
+**Considerations**
+
+- Wraps the transport: its place in the activation order decides what it
+  sees. See [Ordering](#ordering) above.
+- Inactive by default: leaving it out costs nothing at runtime.
+
+#### `retry`
+
+Retry.
+
+**Configuration**
+
+| Option | Default |
+|---|---|
+| `active` | `false` |
+| `factor` | `2` |
+| `maxDelay` | `2000` |
+| `minDelay` | `50` |
+| `retries` | `2` |
+| `statuses` | `[408, 425, 429, 500, 502, 503, 504]` |
+
+| Option | Type |
+|---|---|
+| `jitter` | boolean |
+| `sleep` | function |
+
+These take no default: the feature behaves one way when you supply them and
+another when you do not.
+
+**Usage**
+
+Set `feature.retry.active` to true in the client options, and override any option above in the same entry. Every option keeps
+its default unless you name it.
+
+**Considerations**
+
+- Wraps the transport: its place in the activation order decides what it
+  sees. See [Ordering](#ordering) above.
+- Inactive by default: leaving it out costs nothing at runtime.
+
 #### `test`
 
-In-memory mock transport for testing without a live server.
+Test transport.
 
 **Configuration**
 
@@ -235,10 +320,13 @@ In-memory mock transport for testing without a live server.
 |---|---|
 | `active` | `false` |
 
-Options above are those the model carries a default for. A feature may
-also accept callback options — a `sink` to receive each record, for
-instance — which have no default and are covered in the full feature
-reference.
+| Option | Type |
+|---|---|
+| `entity` | map |
+| `net` | map |
+
+These take no default: the feature behaves one way when you supply them and
+another when you do not.
 
 **Usage**
 
@@ -251,5 +339,35 @@ its default unless you name it.
   not change what it observes.
 - Installs the BASE transport that the wrapping features wrap, so it must be
   activated before them.
+- Inactive by default: leaving it out costs nothing at runtime.
+
+#### `timeout`
+
+Timeout.
+
+**Configuration**
+
+| Option | Default |
+|---|---|
+| `active` | `false` |
+| `ms` | `30000` |
+
+| Option | Type |
+|---|---|
+| `clearTimer` | function |
+| `setTimer` | function |
+
+These take no default: the feature behaves one way when you supply them and
+another when you do not.
+
+**Usage**
+
+Set `feature.timeout.active` to true in the client options, and override any option above in the same entry. Every option keeps
+its default unless you name it.
+
+**Considerations**
+
+- Wraps the transport: its place in the activation order decides what it
+  sees. See [Ordering](#ordering) above.
 - Inactive by default: leaving it out costs nothing at runtime.
 

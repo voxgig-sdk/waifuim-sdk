@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-// GithubApi2 SDK utility: prepare_query
+// Waifuim SDK utility: prepare_query
 
-class GithubApi2PrepareQuery
+class WaifuimPrepareQuery
 {
-    public static function call(GithubApi2Context $ctx): array
+    public static function call(WaifuimContext $ctx): array
     {
         $point = $ctx->point;
         $reqmatch = $ctx->reqmatch ?? [];
@@ -22,7 +22,7 @@ class GithubApi2PrepareQuery
             foreach ($items as $item) {
                 $key = $item[0];
                 $val = $item[1];
-                if ($val !== null && is_string($key) && !in_array($key, $params, true)) {
+                if ($val !== null && is_string($key) && '$action' !== $key && !in_array($key, $params, true)) {
                     $out[$key] = $val;
                 }
             }

@@ -1,7 +1,7 @@
 package core
 
-type GithubApi2Error struct {
-	IsGithubApi2Error bool
+type WaifuimError struct {
+	IsWaifuimError bool
 	Sdk              string
 	Code             string
 	Msg              string
@@ -10,16 +10,16 @@ type GithubApi2Error struct {
 	Spec             any
 }
 
-func NewGithubApi2Error(code string, msg string, ctx *Context) *GithubApi2Error {
-	return &GithubApi2Error{
-		IsGithubApi2Error: true,
-		Sdk:              "GithubApi2",
+func NewWaifuimError(code string, msg string, ctx *Context) *WaifuimError {
+	return &WaifuimError{
+		IsWaifuimError: true,
+		Sdk:              "Waifuim",
 		Code:             code,
 		Msg:              msg,
 		Ctx:              ctx,
 	}
 }
 
-func (e *GithubApi2Error) Error() string {
+func (e *WaifuimError) Error() string {
 	return e.Msg
 }
